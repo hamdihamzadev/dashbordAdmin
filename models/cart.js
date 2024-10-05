@@ -4,19 +4,24 @@ const itemsSchema=mongoose.Schema({
     product: {
         type: mongoose.Types.ObjectId,
         ref: 'Product',
-        required: true
+        required: false
     },
     quantity: {
         type: Number,
-        required: true
+        required: false
     },
     total: {
         type: Number,
-        required: true
+        required: false
+    },
+
+    delete:{
+        type: Boolean,
+        required: false
     },
     date: {
         type: Date,
-        required: true
+        required: false
     },
 })
 

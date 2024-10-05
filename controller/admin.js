@@ -5,7 +5,7 @@ require('dotenv').config()
 
 exports.SignUp=async (req,res)=>{
     try{
-        const {firsName,lastName,email,password,date}=req.body
+        const {firsName,lastName,email,password}=req.body
         
         // Verify email if it has been used before
         const vfEmail= await ModelAdmin.findOne({email:email})
@@ -22,7 +22,7 @@ exports.SignUp=async (req,res)=>{
             lastName,
             email,
             password:hashPassword,
-            date
+            date:new Date().getDate() + '-' + new Date().getMonth() + '-' + new Date().getFullYear()
         })
 
         // save admin
@@ -30,7 +30,13 @@ exports.SignUp=async (req,res)=>{
         if(saveAdmin){
             return res.status(404).json({message:'admin is not created'})
         }
-        res.status(200).json({message:'admin is created'})
+        res.status(200).json({
+            token:jsw.sign(
+                {adminId:admin._id},
+                process.env.JWT_SECRET_ADMIN,
+                { expiresIn: '24h' }
+            )
+        })
     }
     
     catch(error){
@@ -71,16 +77,19 @@ exports.Login=async(req,res)=>{
 
 exports.getAdmin=async(req,res)=>{
     try{
+
+        // GET ID ADMIN
         const adminId=req.authAdmin.adminId
-        const findAdmin=await ModelAdmin.findById(adminId)
+
+        // FIND ADMIN
+        const findAdmin=await ModelAdmin.findOne({_id:adminId}).select('-admin')
 
         // verification if already used
-        if(!findAdmin){return res.status(404).json({message:'admin is not found'})}
+        if(!findAdmin){
+            return res.status(404).json({message:'admin is not found'})
+        }
 
-        const adminWithoutPassword = findAdmin.toObject()
-        delete adminWithoutPassword.password
-
-        res.status(200).json({admin:adminWithoutPassword})
+        res.status(200).json({admin:findAdmin})
     }
     catch(error){
         res.status(500).json({error:error.message})

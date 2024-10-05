@@ -6,14 +6,14 @@ const reviewSchema=mongoose.Schema({
         ref:'Admin',
         required: true
     },
-    product:{
-        type:mongoose.Types.ObjectId,
-        ref:'Product',
-        required: true
-    },
     customer:{
         type:mongoose.Types.ObjectId,
         ref:'Customer',
+        required: true
+    },
+    product:{
+        type:mongoose.Types.ObjectId,
+        ref:'Product',
         required: true
     },
     comment:{

@@ -100,6 +100,7 @@ exports.updateProduct = async (req, res) => {
         // Send successful response
         res.status(200).json({
             message: 'product is delete with success',
+            product:updateProduct,
         })
 
     } catch (error) {
