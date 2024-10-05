@@ -39,7 +39,6 @@ exports.createProduct = async (req, res) => {
         }
         res.status(201).json({
             message: 'product is created with success',
-            newProduct
         })
     } catch (error) {
         res.status(500).json({
@@ -100,7 +99,6 @@ exports.updateProduct = async (req, res) => {
         // Send successful response
         res.status(200).json({
             message: 'product is delete with success',
-            product:updateProduct,
         })
 
     } catch (error) {
@@ -112,12 +110,11 @@ exports.updateProduct = async (req, res) => {
 }
 
 // get one product
-exports.getOneProduct = async (req, res) => {
+exports.getOneProduct = async (req,res) => {
     try {
         const findProduct = await modelproduct.findOne({
-            _id: req.params.id,
+            _id: req.params.id, 
             admin: req.authAdmin.adminId,
-            delete:false,
         }).select('-admin')
 
         if (!findProduct) {
@@ -144,7 +141,7 @@ exports.getProductsCategory=async(req,res)=>{
         const admin=req.authAdmin.adminId
 
          // find category
-        const findCategory=await modelCategory.findOne({_id:idCategory,admin,delete:false})
+        const findCategory=await modelCategory.findOne({_id:idCategory,admin,delete:false}).select('-admin')
         if(!findCategory){
             res.status(404).json({
                 message: 'category is not found or deleted'
@@ -152,7 +149,7 @@ exports.getProductsCategory=async(req,res)=>{
         }
 
         // find products
-        const findProducts=await modelproduct.find({admin,category:idCategory,delete:false})
+        const findProducts=await modelproduct.find({admin,category:idCategory,delete:false}).select('-admin')
         if(!findProducts){
             res.status(404).json({
                 message: 'products is not found or deleted'
@@ -171,6 +168,28 @@ exports.getProductsCategory=async(req,res)=>{
             error: error.message
         })
 
+    }
+}
+
+// get all products
+exports.getAllProducts=async (req,res)=>{
+    try{
+
+        // GET ID ADMIN
+        const admin=req.authAdmin.adminId
+
+        // GET ALL PRODUCTS
+        const getProducts=await modelproduct.find({admin}).select('-admin')
+        if(!getProducts){
+            return res.status(404).json({message:'no products found'})
+        }
+
+        // SEND PRODUCTS
+        res.status(200).json({products:getProducts})
+
+    }
+    catch(error){
+        res.status(500).json({error:error.message})
     }
 }
 
