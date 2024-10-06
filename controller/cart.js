@@ -164,7 +164,6 @@ exports.getProductsDeleted = async (req, res) => {
     try {
         // ID ADMIN AND CUSTOMER
         const admin = req.authAdmin.adminId
-        const customer = req.authCustomer.customerId
 
         // GET ALL CARTS THE ADMIN 
         const findAllCarts = await modelCart.find({

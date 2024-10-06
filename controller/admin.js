@@ -27,7 +27,7 @@ exports.SignUp=async (req,res)=>{
 
         // save admin
         const saveAdmin=await newAdmin.save()
-        if(saveAdmin){
+        if(!saveAdmin){
             return res.status(404).json({message:'admin is not created'})
         }
         res.status(200).json({

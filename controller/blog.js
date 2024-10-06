@@ -177,3 +177,28 @@ exports.getBlogsCategory=async(req,res)=>{
         })
     }
 }
+
+// GET ALL BLOGS
+exports.getAllBlogs=async(req,res)=>{
+    try{
+
+        // GET ID ADMIN
+        const admin=req.authAdmin.adminId
+
+        // GET BLOGS
+        const getBlogs=await modelBlog.find({admin}).select('-admin')
+        if(!getBlogs){
+            return res.status(404).json({message:'no blogs found'})
+        }
+
+        // SEND BLOGS
+        res.status(200).json({blogs:getBlogs})
+    }
+
+    catch (error) {
+        res.status(500).json({
+            error: error.message
+        })
+    }
+    
+}

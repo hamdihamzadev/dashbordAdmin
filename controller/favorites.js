@@ -122,7 +122,7 @@ exports.deleteItem = async (req, res) => {
             admin,
             customer
         })
-        if (!findCustomer) {
+        if (!listCustomer) {
             return res.status(404).json({
                 message: 'customer dont have any favorites'
             })

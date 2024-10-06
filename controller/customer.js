@@ -53,18 +53,23 @@ exports.SigninCustomer= async(req,res)=>{
 // SIGN IN CUSTOMER
 exports.loginCustomer = async(req,res)=>{
     try{
-        const {email,password}=req.body
+        const {password}=req.body
         const admin=req.authAdmin.adminId
+        const customerId=req.authCustomer.customerId
 
         // FIND CUSTOMER
-        const findCustomer=await modelCustomer.findOne({admin,email})
+        const findCustomer=await modelCustomer.findOne({admin,customerId})
         if(!findCustomer){
             return res.status(404).json({message:'customer not found'})
         }
 
         // CHECK IF DELETED
-        if(findCustomer.delete===true){
+        if(!findCustomer){
+            return res.status(400).json({message:'customer no found'})
+        }else if(findCustomer.delete===true  ){
             return res.status(400).json({message:'customer is deleted'})
+        }else if(findCustomer.block===true ){
+            return res.status(400).json({message:'customer is block'})
         }
 
         // verification password
@@ -74,7 +79,6 @@ exports.loginCustomer = async(req,res)=>{
         }
 
         res.status(200).json({
-            customerId:findCustomer._id,
             token:jwt.sign(
                 {customerId:findCustomer._id},
                 process.env.JWT_SECRET_CUSTOMER,

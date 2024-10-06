@@ -5,10 +5,10 @@ exports.createOrder = async (req, res) => {
 
         // GET AUTH ADMIN
         const admin = req.authAdmin.adminId
+        const customer=req.authCustomer.customerId
 
         // FIELDS 
         const {
-            customer,
             adressDelivery,
             discount,
             total,
