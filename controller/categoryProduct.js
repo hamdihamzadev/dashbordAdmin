@@ -4,29 +4,30 @@ const modelCategory=require('../models/categoryProduct')
 exports.createCategory= async (req,res)=>{
     try{
         const admin=req.authAdmin.adminId
-        const {name} = req.body
+        const {name,visibility} = req.body
 
         const newCategory=new modelCategory({
             admin,
             name,
             img:`${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
-            visibility:true,
+            visibility,
             delete:false,
-            date:new Date().getDate() +'-'+ new Date().getMonth() +'-'+  new Date().getFullYear()
+            date:`${new Date().getDate() +'-'+ new Date().getMonth() +'-'+  new Date().getFullYear()}`
         })
-
         // save category
         const saveCategory=await newCategory.save()
-        if(!saveCategory){
-            return res.status(400).json({message:'category is not created'})
-        }
+
+        // delete admin
+        const category=saveCategory.toObject()
+        delete category.admin
+
         res.status(201).json({
             message:'category created with success',
-            category:saveCategory
+            category
         })
        }
     catch(error){
-        res.status(500).json({error:error.message})
+        res.status(500).json({error})
     }
 }
 
@@ -35,7 +36,7 @@ exports.GetAllCategories=async(req,res)=>{
     try{
         const getCategories=await modelCategory.find({admin:req.authAdmin.adminId}).select('-admin')
 
-        if(!getCategories || getCategories.length===0){
+        if(!getCategories){
             return res.status(404).json({message:'no category found'})
         }
         res.status(200).json({categories:getCategories})
@@ -48,13 +49,15 @@ exports.GetAllCategories=async(req,res)=>{
 // CREATE CATEGORY
 exports.updateCategory=async(req,res)=>{
     try{
-
+        
         // GET ID ADMIN AND CATEGORY
         const categoryId=req.params.id
         const adminId=req.authAdmin.adminId
 
+        console.log('req body is ===> ',req.body)
+
         // FIELDS
-        const fields=['name','img','visibility','delete']
+        const fields=['name','visibility','delete']
 
        // FIND CATEGORY
        const findCategory=await modelCategory.findOne({
@@ -72,30 +75,26 @@ exports.updateCategory=async(req,res)=>{
 
        fields.forEach(field=>{
         if(req.body[field]){
-            if(field==='img'){
-                newUpdate[field]=`${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-            }else{
-                newUpdate[field]=req.body[field]
-            }
+           newUpdate[field]=req.body[field]
         }
        })
 
+       if(req.file){
+        newUpdate.img=`${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+       }
+
        // update category 
-       const updateCategory=await modelCategory.findByIdAndUpdate(
+       const categoryUpdate=await modelCategory.findByIdAndUpdate(
         categoryId,
         { $set : newUpdate },
         { new : true,runValidators: true}
        )
 
-       if(!updateCategory){
-        return res.status(400).json({message:'category is not update'})
-       }
+       res.status(200).json({categoryUpdate})
 
-       res.status(200).json({message:'category is delete with success'})
-       
     }
     catch(error){
-        res.status(500).json({error:error.message})
+        res.status(500).json({error})
     }
 }
 

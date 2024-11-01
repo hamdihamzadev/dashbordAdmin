@@ -1,3 +1,4 @@
+
 const mongoose = require('mongoose')
 
 const ProductsSchema = mongoose.Schema({
@@ -32,13 +33,13 @@ const ProductsSchema = mongoose.Schema({
         required: true
     },
     promotion: {
-        active: {
-            type: Boolean,
-            required: false
-        },
         priceAfter: {
             type: Number,
-            required: false
+            required: true
+        },
+        percentage:{
+            type:Number,
+            required: true
         }
     },
     imgs: {
@@ -54,7 +55,7 @@ const ProductsSchema = mongoose.Schema({
         required: true
     },
     date: {
-        type: Date,
+        type: String,
         required: true
     },
 

@@ -11,14 +11,13 @@ exports.createCategory=async(req,res)=>{
             img:`${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
             visibility,
             delete:false,
-            date:new Date().getDate() +'-'+ new Date().getMonth() +'-'+  new Date().getFullYear()
+            date: `${new Date().getDate()} - ${new Date().getMonth()} - ${new Date().getFullYear()} `
         })
+        
         const saveCategory=await newCategory.save()
-        if(!saveCategory){
-            res.status(400).json({message:'category post is not created'})
-        }
         res.status(201).json({
             message:'category created with success',
+            category:saveCategory
         })
     }
     catch(error){

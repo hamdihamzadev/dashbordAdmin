@@ -2,10 +2,10 @@ const express=require('express')
 const router=express.Router()
 const controller=require('../controller/categoryProduct')
 const authAdmin=require('../middlware/authAdmin')
-const multer=require('../middlware/multer')
+const multer=require('../middlware/multer').uploadSingle
 
 router.post('/newCategory',authAdmin,multer,controller.createCategory)
-router.get('/category',authAdmin,controller.GetAllCategories )
-router.put('/category/:id',authAdmin,controller.updateCategory)
+router.get('/categories',authAdmin,controller.GetAllCategories )
+router.put('/category/:id',authAdmin,multer,controller.updateCategory)
 
 module.exports=router

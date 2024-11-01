@@ -12,9 +12,8 @@ exports.createProduct = async (req, res) => {
             description,
             shipping,
             promotion,
-            imgs
         } = req.body
-
+        const parsePromotion=JSON.parse(promotion)
         const newProduct = new modelproduct({
             admin: req.authAdmin.adminId,
             category,
@@ -23,23 +22,19 @@ exports.createProduct = async (req, res) => {
             quantity,
             description,
             shipping,
-            promotion,
-            imgs: imgs.map(file => `${req.protocol}://${req.get('host')}/images/${file.filename}`),
+            promotion:parsePromotion,
+            imgs: req.files.map(file => `${req.protocol}://${req.get('host')}/images/${file.filename}`),
             visibility: true,
             delete: false,
-            date: new Date().getDate() + '-' + new Date().getMonth() + '-' + new Date().getFullYear()
-
+            date: `${new Date().getDate()} - ${new Date().getMonth()} - ${new Date().getFullYear()}`
         })
 
-        const saveProduct = await newProduct()
-        if (!saveProduct) {
-            return res.status(400).json({
-                message: 'product is not created'
-            })
-        }
+        const saveProduct = await newProduct.save()
+   
         res.status(201).json({
-            message: 'product is created with success',
+            product:saveProduct
         })
+        
     } catch (error) {
         res.status(500).json({
             error: error.message
@@ -50,7 +45,9 @@ exports.createProduct = async (req, res) => {
 // for delete for visibility for another data
 exports.updateProduct = async (req, res) => {
     try {
-        const fields = ['category', 'name', 'price', 'quantity', 'description', 'shipping', 'promotion', 'imgs', 'visibility', 'delete']
+        const fields = ['category','name','price','quantity','description','shipping','visibility','delete']
+        console.log(req.body)
+        console.log('images',req.files)
         const idProduct = req.params.id
 
         // find product
@@ -66,24 +63,27 @@ exports.updateProduct = async (req, res) => {
             })
         }
 
-        // create object  product update
+        // create object product update
         const update = {}
+        if(req.files){
+            update.imgs=req.files.map(file => `${req.protocol}://${req.get('host')}/images/${file.filename}`)
+        }
+
+        if(req.body.promotion){
+            update.promotion=JSON.parse(req.body.promotion)
+        }
 
         fields.forEach(field => {
             if (req.body[field]) {
-                if (field === 'imgs') {
-                    update[field] = req.body[field].map(file => `${req.protocol}://${req.get('host')}/images/${file.filename}`);
-                } else {
-                    update[field] = req.body[field];
-                }
+              update[field] = req.body[field]
             }
         });
 
         // Update the product in the database
         const updateProduct = await modelproduct.findByIdAndUpdate(
-            idProduct, {
-                $set: update
-            }, {
+            idProduct,
+            { $set: update},
+            {
                 new: true,
                 runValidators: true
             }
@@ -98,7 +98,8 @@ exports.updateProduct = async (req, res) => {
 
         // Send successful response
         res.status(200).json({
-            message: 'product is delete with success',
+            message: 'product is update with success',
+            updateProduct:updateProduct
         })
 
     } catch (error) {

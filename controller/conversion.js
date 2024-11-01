@@ -15,9 +15,6 @@ exports.addStatus=async (req,res)=>{
         })
 
         const save=await addStatus.save()
-        if(!save){
-            return res.status(400).json({message:'status conversion is not created'})
-        }
 
         res.status(201).json({message:'status conversion is created with successful'})
 

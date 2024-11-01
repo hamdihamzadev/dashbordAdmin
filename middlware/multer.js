@@ -4,6 +4,7 @@ const MIME_TYPES={
     'image/jpg':'jpg',
     'image/jpeg':'jpg',
     'image/png':'png',
+    'image/webp': 'webp'
 }
 
 const storage= multer.diskStorage({
@@ -13,8 +14,18 @@ const storage= multer.diskStorage({
     filename:(req,file,callback)=>{
         const extension=MIME_TYPES[file.mimetype]
         const uniqueSuffix=Date.now()+ '-' + Math.round(Math.random() * 1E9)
-        callback(null, file.filename + '-' + uniqueSuffix + '.'+extension )
+        callback(null,file.originalname.split('.').filter(ele=>ele!=='png').join('') + '-' + uniqueSuffix + '.'+extension )
     }
 })
 
-module.exports=multer({storage:storage}).single('image')
+const uploadSingle = multer({ storage: storage }).single('img');
+
+// Middleware pour plusieurs fichiers
+const uploadMultiple = multer({ storage: storage }).array('imgs');
+
+// Exporter les deux middlewares dans un objet
+module.exports = {
+    uploadSingle,
+    uploadMultiple
+};
+
