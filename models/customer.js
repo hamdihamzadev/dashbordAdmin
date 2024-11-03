@@ -46,8 +46,12 @@ const customerSchema = mongoose.Schema({
         type: Boolean,
         required: true
     },
+    status:{
+        type:Boolean,
+        required:true
+    },
     date: {
-        type: Date,
+        type: String,
         required: true
     },
 

@@ -7,17 +7,17 @@ require('dotenv').config()
 exports.SigninCustomer= async(req,res)=>{
     try{
         // GET FIELDS
-        const {firstName,lastName,phone,contry,city,email,password}=req.body
+        const {firstName,lastName,phone,contry,city,adress,email,password}=req.body
         const admin=req.authAdmin.adminId
 
         // Verify email if it has been used before
         const vfEmail=await modelCustomer.findOne({admin,email})
-        if(!vfEmail){
+        if(vfEmail){
             return res.status(404).json({message:'email already used'})
         }
 
         // HASH PASSWORD
-        const hashPassword=bcrypt.hash(password,10)
+        const hashPassword= await bcrypt.hash(password,10)
         
         // CREATE NEW CUSTOMER
         const newCustomer=new modelCustomer({
@@ -27,12 +27,13 @@ exports.SigninCustomer= async(req,res)=>{
             phone,
             contry,
             city,
-            adress:'',
+            adress,
             email,
             password:hashPassword,
             delete:false,
             block:false, 
-            date:new Date().getDate() + '-' + new Date().getMonth() + '-' + new Date().getFullYear()
+            status:false,
+            date:`${new Date().getDate()}-${new Date().getMonth()}-${new Date().getFullYear()}`
 
         })
 
@@ -124,12 +125,12 @@ exports.GetAllCustomers=async(req,res)=>{
         
         // GET ALL CUSTOMERS BY ADMIN ID
         const getCustomers=await modelCustomer.find({admin}).select('-admin')
-        if(!getCustomers || getCustomers.length===0 ){
+        if(!getCustomers ){
             return res.status(404).json({message:'No customers found'})
         }
 
         // SEND ALL CUSTOMERS
-        res.status(500).json({customers:getCustomers})
+        res.status(200).json({Allcustomers:getCustomers})
     }
     catch(error){
         res.status(500).json({error:error.message})
@@ -144,7 +145,7 @@ exports.updateCustomerByUser=async(req,res)=>{
         const customerId=req.authCustomer.adminId
 
         // FIELDS 
-        const fields=['firstName','lastName','phone','contry','city','adress','email']
+        const fields=['firstName','lastName','phone','contry','city','adress','email','status']
 
         // FIND CUSTOMER 
         const findCustomer=await modelCustomer.findOne({admin,_id:customerId})
@@ -181,14 +182,14 @@ exports.updateCustomerByUser=async(req,res)=>{
 }
 
 // BLOCKED OR UNBLOCKED CUSTOMER BY ADMIN
-exports.blockCustomer=async(req,res)=>{
+exports.updateCustomerByAdmin=async(req,res)=>{
     try{
         // GET AUTH ADMIN AND ID CUSTOMER
         const admin=req.authAdmin.adminId
         const customerId=req.params.id
-
-        // GET VALUE BLOCK
-        const valueBlock=req.body.block
+        
+        // FIELDS
+        const fields=['delete','block']
 
         // FIND CUSTOMER
         const findCustomer=await modelCustomer.findOne({admin,_id:customerId})
@@ -196,21 +197,30 @@ exports.blockCustomer=async(req,res)=>{
             return  res.status(404).json({message:'customer not found'})
         }
 
+        const update={}
+        fields.forEach(ele=>{
+            if(req.body[ele]){
+                update[ele]=req.body[ele]
+            }
+        })
+
         // UPDATE BLOCK CUSTOMER
         const updateBlock=await modelCustomer.findByIdAndUpdate(
             customerId,
-            {$set:{block:valueBlock}},
+            {$set:update},
             {new:true,runValidators: true}
         )
 
-        if(!updateBlock){
-            return res.status(400).json({message:'The customer found is not changed in this block'})
-        }
-
         if(valueBlock===true){
-            res.status(200).json({message:'Customer is blocked with success.'})
+            res.status(200).json({
+                message:'Customer is blocked with success.',
+                customerUpdate:updateBlock
+            })
         }else if (valueBlock===false){
-            res.status(200).json({message:'Customer is unblocked with success.'})
+            res.status(200).json({
+                message:'Customer is unblocked with success.',
+                customerUpdate:updateBlock
+            })
         }
 
     }
@@ -218,3 +228,7 @@ exports.blockCustomer=async(req,res)=>{
         res.status(500).json({error:error.message})
     }
 }
+
+
+
+
