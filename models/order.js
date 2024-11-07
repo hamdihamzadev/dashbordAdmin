@@ -1,32 +1,6 @@
 const mongoose=require('mongoose')
 
 
-const orderItemSchema=mongoose.Schema({
-    product:{
-        type:mongoose.Types.ObjectId,
-        ref:'Product',
-        required: true
-    },
-    price:{
-        type:Number,
-        required: true
-    },
-    quantity:{
-        type:Number,
-        required: true
-    },
-    shipping:{
-        type:Number,
-        required: true
-    },
-    total:{
-        type:Number,
-        required: true
-    },
-
-})
-
-
 const orderSchema=mongoose.Schema({
     admin: {
         type: mongoose.Types.ObjectId,
@@ -38,13 +12,21 @@ const orderSchema=mongoose.Schema({
         ref:'Customer',
         required: true
     },
-    adressDelivery:{
+    contry:{
+        type:String,
+        required: true
+    },
+    city:{
+        type:String,
+        required: true
+    },
+    adress:{
         type:String,
         required: true
     },
     discount:{
         type:Number,
-        required: true
+        required: false
     },
     total:{
         type:Number,
@@ -62,7 +44,25 @@ const orderSchema=mongoose.Schema({
         type:String,
         required: false
     },
-    orderItem:[orderItemSchema],
+    orderItem:[{
+        product:{
+            type:mongoose.Types.ObjectId,
+            ref:'Product',
+            required: true
+        },
+        price:{
+            type:Number,
+            required: true
+        },
+        quantity:{
+            type:Number,
+            required: true
+        },
+        total:{
+            type:Number,
+            required: true
+        },
+    }],
     date:{
         type:Date,
         required:true

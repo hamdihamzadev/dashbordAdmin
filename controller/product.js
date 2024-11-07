@@ -46,8 +46,6 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
     try {
         const fields = ['category','name','price','quantity','description','shipping','visibility','delete']
-        console.log(req.body)
-        console.log('images',req.files)
         const idProduct = req.params.id
 
         // find product
@@ -65,7 +63,7 @@ exports.updateProduct = async (req, res) => {
 
         // create object product update
         const update = {}
-        if(req.files){
+        if(req.files && req.files.length > 0){
             update.imgs=req.files.map(file => `${req.protocol}://${req.get('host')}/images/${file.filename}`)
         }
 

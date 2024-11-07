@@ -1,26 +1,40 @@
-const modelCustomer=require('../models/customer')
-const bcrypt=require('bcrypt')
-const jwt=require('jsonwebtoken')
+const modelCustomer = require('../models/customer')
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
 // CREATE CUSTOMER
-exports.SigninCustomer= async(req,res)=>{
-    try{
+exports.SigninCustomer = async (req, res) => {
+    try {
         // GET FIELDS
-        const {firstName,lastName,phone,contry,city,adress,email,password}=req.body
-        const admin=req.authAdmin.adminId
+        const {
+            firstName,
+            lastName,
+            phone,
+            contry,
+            city,
+            adress,
+            email,
+            password
+        } = req.body
+        const admin = req.authAdmin.adminId
 
         // Verify email if it has been used before
-        const vfEmail=await modelCustomer.findOne({admin,email})
-        if(vfEmail){
-            return res.status(404).json({message:'email already used'})
+        const vfEmail = await modelCustomer.findOne({
+            admin,
+            email
+        })
+        if (vfEmail) {
+            return res.status(404).json({
+                message: 'email already used'
+            })
         }
 
         // HASH PASSWORD
-        const hashPassword= await bcrypt.hash(password,10)
-        
+        const hashPassword = await bcrypt.hash(password, 10)
+
         // CREATE NEW CUSTOMER
-        const newCustomer=new modelCustomer({
+        const newCustomer = new modelCustomer({
             admin,
             firstName,
             lastName,
@@ -29,206 +43,253 @@ exports.SigninCustomer= async(req,res)=>{
             city,
             adress,
             email,
-            password:hashPassword,
-            delete:false,
-            block:false, 
-            status:false,
-            date:`${new Date().getDate()}-${new Date().getMonth()}-${new Date().getFullYear()}`
+            password: hashPassword,
+            delete: false,
+            block: false,
+            status: false,
+            date: `${new Date().getDate()}-${new Date().getMonth()}-${new Date().getFullYear()}`
 
         })
 
         // SAVE CUSTOMER
-        const saveCustomer=await newCustomer.save()
-        if(!saveCustomer){
-            return res.status(400).json({message:'customer is not saved'})
+        const saveCustomer = await newCustomer.save()
+        if (!saveCustomer) {
+            return res.status(400).json({
+                message: 'customer is not saved'
+            })
         }
 
-        res.status(201).json({message:'customer is created with successful'})
+        res.status(201).json({
+            message: 'customer is created with successful'
+        })
 
-    }
-    catch(error){
-        res.status(500).json({error:error.message})
+    } catch (error) {
+        res.status(500).json({
+            error: error.message
+        })
     }
 }
 
 // SIGN IN CUSTOMER
-exports.loginCustomer = async(req,res)=>{
-    try{
-        const {password}=req.body
-        const admin=req.authAdmin.adminId
-        const customerId=req.authCustomer.customerId
+exports.loginCustomer = async (req, res) => {
+    try {
+        const {
+            password
+        } = req.body
+        const admin = req.authAdmin.adminId
+        const customerId = req.authCustomer.customerId
 
         // FIND CUSTOMER
-        const findCustomer=await modelCustomer.findOne({admin,customerId})
-        if(!findCustomer){
-            return res.status(404).json({message:'customer not found'})
+        const findCustomer = await modelCustomer.findOne({
+            admin,
+            customerId
+        })
+        if (!findCustomer) {
+            return res.status(404).json({
+                message: 'customer not found'
+            })
         }
 
         // CHECK IF DELETED
-        if(!findCustomer){
-            return res.status(400).json({message:'customer no found'})
-        }else if(findCustomer.delete===true  ){
-            return res.status(400).json({message:'customer is deleted'})
-        }else if(findCustomer.block===true ){
-            return res.status(400).json({message:'customer is block'})
+        if (!findCustomer) {
+            return res.status(400).json({
+                message: 'customer no found'
+            })
+        } else if (findCustomer.delete === true) {
+            return res.status(400).json({
+                message: 'customer is deleted'
+            })
+        } else if (findCustomer.block === true) {
+            return res.status(400).json({
+                message: 'customer is block'
+            })
         }
 
         // verification password
-        const vfPassword=await bcrypt.compare(password,findCustomer.password)
-        if(!vfPassword){
-            return res.status(404).json({message:'passwrod is incorrecte'})
+        const vfPassword = await bcrypt.compare(password, findCustomer.password)
+        if (!vfPassword) {
+            return res.status(404).json({
+                message: 'passwrod is incorrecte'
+            })
         }
 
         res.status(200).json({
-            token:jwt.sign(
-                {customerId:findCustomer._id},
-                process.env.JWT_SECRET_CUSTOMER,
-                { expiresIn: '24h' }
+            token: jwt.sign({
+                    customerId: findCustomer._id
+                },
+                process.env.JWT_SECRET_CUSTOMER, {
+                    expiresIn: '24h'
+                }
             )
         })
+    } catch (error) {
+        res.status(500).json({
+            error: error.message
+        })
     }
-
-    catch(error){
-        res.status(500).json({error:error.message})
-    }
-} 
+}
 
 // GET CUSTOMER
-exports.getCustomerConnected=async(req,res)=>{
-    try{
+exports.getCustomerConnected = async (req, res) => {
+    try {
 
         // GET ALL AUTHS 
-        const admin=req.authAdmin.adminId
-        const customerId=req.authCustomer.customerId
+        const admin = req.authAdmin.adminId
+        const customerId = req.authCustomer.customerId
 
         // FIND CUSTOMER
-        const findCustomer=await modelCustomer.findOne({admin,_id:customerId}).select('-admin-_id')
-        if(!findCustomer){
-            return res.status(404).json({message:'customer is not found'})
+        const findCustomer = await modelCustomer.findOne({
+            admin,
+            _id: customerId
+        }).select('-admin-_id')
+        if (!findCustomer) {
+            return res.status(404).json({
+                message: 'customer is not found'
+            })
         }
 
         // send customer
         res.status(200).json({
-            customer:findCustomer
+            customer: findCustomer
         })
-    }
-
-    catch(error){
-        res.status(500).json({error:error.message})
+    } catch (error) {
+        res.status(500).json({
+            error: error.message
+        })
     }
 }
 
 // GET ALL CUSTOMERS
-exports.GetAllCustomers=async(req,res)=>{
-    try{
-        const admin=req.authAdmin.adminId
-        
+exports.GetAllCustomers = async (req, res) => {
+    try {
+        const admin = req.authAdmin.adminId
+
         // GET ALL CUSTOMERS BY ADMIN ID
-        const getCustomers=await modelCustomer.find({admin}).select('-admin')
-        if(!getCustomers ){
-            return res.status(404).json({message:'No customers found'})
+        const getCustomers = await modelCustomer.find({
+            admin
+        }).select('-admin')
+        if (!getCustomers) {
+            return res.status(404).json({
+                message: 'No customers found'
+            })
         }
 
         // SEND ALL CUSTOMERS
-        res.status(200).json({Allcustomers:getCustomers})
-    }
-    catch(error){
-        res.status(500).json({error:error.message})
+        res.status(200).json({
+            Allcustomers: getCustomers
+        })
+    } catch (error) {
+        res.status(500).json({
+            error: error.message
+        })
     }
 }
 
 // UPDATE CUSTOMER
-exports.updateCustomerByUser=async(req,res)=>{
-    try{
+exports.updateCustomerByUser = async (req, res) => {
+    try {
         // GET ALL AUTHS 
-        const admin=req.authAdmin.adminId
-        const customerId=req.authCustomer.adminId
+        const admin = req.authAdmin.adminId
+        const customerId = req.authCustomer.adminId
 
         // FIELDS 
-        const fields=['firstName','lastName','phone','contry','city','adress','email','status']
+        const fields = ['firstName', 'lastName', 'phone', 'contry', 'city', 'adress', 'email', 'status']
 
         // FIND CUSTOMER 
-        const findCustomer=await modelCustomer.findOne({admin,_id:customerId})
-        if(!findCustomer){
-            return res.status(404).json({message:'customer not found'})
+        const findCustomer = await modelCustomer.findOne({
+            admin,
+            _id: customerId
+        })
+        if (!findCustomer) {
+            return res.status(404).json({
+                message: 'customer not found'
+            })
         }
 
         // CREATE OBJECT UPDATE 
-        const update={}
-        fields.forEach(field=>{
-            if(req.body[field]){
-                update[field]=req.body[field]
+        const update = {}
+        fields.forEach(field => {
+            if (req.body[field]) {
+                update[field] = req.body[field]
             }
         })
 
         // UPDATE CUSTOMER
-        const updateCustomer=await modelCustomer.findByIdAndUpdate(
-            customerId,
-            {$set:update},
-            {new:true, runValidators: true}
+        const updateCustomer = await modelCustomer.findByIdAndUpdate(
+            customerId, {
+                $set: update
+            }, {
+                new: true,
+                runValidators: true
+            }
         )
 
-        if(!updateCustomer){
-            return res.status(400).json({message:'customer is not update'})
+        if (!updateCustomer) {
+            return res.status(400).json({
+                message: 'customer is not update'
+            })
         }
-        
-        res.status(200).json({message:'customer is update with successful'})
 
-    }
+        res.status(200).json({
+            message: 'customer is update with successful'
+        })
 
-    catch(error){
-        res.status(500).json({error:error.message})
+    } catch (error) {
+        res.status(500).json({
+            error: error.message
+        })
     }
 }
 
 // BLOCKED OR UNBLOCKED CUSTOMER BY ADMIN
-exports.updateCustomerByAdmin=async(req,res)=>{
-    try{
+exports.updateCustomerByAdmin = async (req, res) => {
+    try {
         // GET AUTH ADMIN AND ID CUSTOMER
-        const admin=req.authAdmin.adminId
-        const customerId=req.params.id
-        
-        // FIELDS
-        const fields=['delete','block']
+        const admin = req.authAdmin.adminId
+        const customerId = req.params.id
+
+        // VALUES
+        const deleted = req.body.delete
+        const block = req.body.block
+
+        console.log(block)
 
         // FIND CUSTOMER
-        const findCustomer=await modelCustomer.findOne({admin,_id:customerId})
-        if(!findCustomer){
-            return  res.status(404).json({message:'customer not found'})
+        const findCustomer = await modelCustomer.findOne({
+            admin,
+            _id: customerId
+        })
+        if (!findCustomer) {
+            return res.status(404).json({
+                message: 'customer not found'
+            })
         }
 
-        const update={}
-        fields.forEach(ele=>{
-            if(req.body[ele]){
-                update[ele]=req.body[ele]
-            }
-        })
+        const update = {}
+        if (deleted !== undefined) { 
+            update.delete = deleted;
+        }
+        if (block !== undefined) { 
+            update.block = block;
+        }
 
         // UPDATE BLOCK CUSTOMER
-        const updateBlock=await modelCustomer.findByIdAndUpdate(
+        const updateBlock = await modelCustomer.findByIdAndUpdate(
             customerId,
-            {$set:update},
-            {new:true,runValidators: true}
+            { $set: update },
+            { new: true , runValidators: true }
         )
 
-        if(valueBlock===true){
-            res.status(200).json({
-                message:'Customer is blocked with success.',
-                customerUpdate:updateBlock
-            })
-        }else if (valueBlock===false){
-            res.status(200).json({
-                message:'Customer is unblocked with success.',
-                customerUpdate:updateBlock
-            })
-        }
+        console.log(updateBlock)
 
-    }
-    catch(error){
-        res.status(500).json({error:error.message})
+        res.status(200).json({
+            customerUpdate: updateBlock
+        })
+
+
+    } catch (error) {
+        res.status(500).json({
+            error: error.message
+        })
     }
 }
-
-
-
-
