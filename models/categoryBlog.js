@@ -6,6 +6,10 @@ const ctgPostSchema = mongoose.Schema({
         ref: 'Admin',
         required: true
     },
+    nameStore:{
+        type:String,
+        required: true
+    },
     name: {
         type: String,
         required: true

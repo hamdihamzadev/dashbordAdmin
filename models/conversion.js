@@ -5,6 +5,10 @@ const conversionSchema=mongoose.Schema({
         type:mongoose.Types.ObjectId,
         required:true
     },
+    nameStore:{
+        type:String,
+        required: true
+    },
 
     status:{
         type:String,

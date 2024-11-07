@@ -6,6 +6,10 @@ const blogSchema = mongoose.Schema({
         ref: 'Admin',
         required: true
     },
+    nameStore:{
+        type:String,
+        required: true
+    },
     title: {
         type: String,
         required: true

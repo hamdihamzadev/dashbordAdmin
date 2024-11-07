@@ -29,6 +29,10 @@ const favoritesSchema=mongoose.Schema({
         ref: 'customer',
         required: true
     },
+    nameStore:{
+        type:String,
+        required: true
+    },
     items:[itemsSchema]
 })
 

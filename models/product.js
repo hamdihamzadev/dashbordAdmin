@@ -12,6 +12,10 @@ const ProductsSchema = mongoose.Schema({
         ref: 'category',
         required: true
     },
+    nameStore:{
+        type:String,
+        required: true
+    },
     name: {
         type: String,
         required: true

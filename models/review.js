@@ -6,6 +6,10 @@ const reviewSchema=mongoose.Schema({
         ref:'Admin',
         required: true
     },
+    nameStore:{
+        type:String,
+        required: true
+    },
     customer:{
         type:mongoose.Types.ObjectId,
         ref:'Customer',
@@ -16,6 +20,7 @@ const reviewSchema=mongoose.Schema({
         ref:'Product',
         required: true
     },
+
     comment:{
         type:String,
         required: true

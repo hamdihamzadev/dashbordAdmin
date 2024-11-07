@@ -12,6 +12,10 @@ const orderSchema=mongoose.Schema({
         ref:'Customer',
         required: true
     },
+    nameStore:{
+        type:String,
+        required: true
+    },
     contry:{
         type:String,
         required: true
