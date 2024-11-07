@@ -9,6 +9,7 @@ exports.SignUp = async (req, res) => {
         const {
             firsName,
             lastName,
+            nameStore,
             email,
             password
         } = req.body
@@ -23,6 +24,15 @@ exports.SignUp = async (req, res) => {
             })
         }
 
+        const vfNameStore=await ModelAdmin.findOne({
+            nameStore
+        })
+        if(vfNameStore){
+            return res.status(404).json({
+                message:'this name is already used'
+            })
+        }
+
         // hash password for security
         const hashPassword = await bcrypt.hash(password, 10)
 
@@ -30,6 +40,7 @@ exports.SignUp = async (req, res) => {
         const newAdmin = new ModelAdmin({
             firsName,
             lastName,
+            nameStore,
             email,
             password: hashPassword,
             date: `${new Date().getDate()} - ${+ new Date().getMonth()} - ${new Date().getFullYear()}`
@@ -61,6 +72,7 @@ exports.Login = async (req, res) => {
         const admin = await ModelAdmin.findOne({
             email: email
         })
+  
         if (!admin) {
             return res.status(404).json({
                 message: 'email is incorrecte'
@@ -82,7 +94,9 @@ exports.Login = async (req, res) => {
                 process.env.JWT_SECRET_ADMIN, {
                     expiresIn: '24h'
                 }
-            )
+            ),
+            nameStore:admin.nameStore
+           
         })
 
     } catch (error) {
