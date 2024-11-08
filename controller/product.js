@@ -6,6 +6,7 @@ exports.createProduct = async (req, res) => {
     try {
         const {
             category,
+            nameStore,
             name,
             price,
             quantity,
@@ -17,6 +18,7 @@ exports.createProduct = async (req, res) => {
         const newProduct = new modelproduct({
             admin: req.authAdmin.adminId,
             category,
+            nameStore,
             name,
             price,
             quantity,

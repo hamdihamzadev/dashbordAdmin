@@ -8,6 +8,7 @@ exports.SigninCustomer = async (req, res) => {
     try {
         // GET FIELDS
         const {
+            nameStore,
             firstName,
             lastName,
             phone,
@@ -36,6 +37,7 @@ exports.SigninCustomer = async (req, res) => {
         // CREATE NEW CUSTOMER
         const newCustomer = new modelCustomer({
             admin,
+            nameStore,
             firstName,
             lastName,
             phone,

@@ -4,10 +4,11 @@ const modelCategory=require('../models/categoryProduct')
 exports.createCategory= async (req,res)=>{
     try{
         const admin=req.authAdmin.adminId
-        const {name,visibility} = req.body
+        const {name,nameStore,visibility} = req.body
 
         const newCategory=new modelCategory({
             admin,
+            nameStore,
             name,
             img:`${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
             visibility,
