@@ -47,8 +47,6 @@ app.use('/api/order',routerOrder)
 app.use('/api/cart',routerCart)
 app.use('/api/favorites',routerFavorites)
 app.use('/api/reviews',routerReviews)
-app.use('/images', express.static('images'));
-
-
+app.use('/images', express.static('images'))
 
 module.exports=app
