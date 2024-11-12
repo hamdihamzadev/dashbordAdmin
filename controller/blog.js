@@ -61,7 +61,7 @@ exports.updateBlog = async (req, res) => {
         // get fields
         const admin = req.authAdmin.adminId
         const idBlog = req.params.id
-        const fields = ['title', 'subtitle', 'description', 'img', 'category', 'visibilty', 'delete']
+        const fields = ['title', 'subtitle', 'description','category', 'visibilty', 'delete']
 
         // find blog
         const findBlog = await modelBlog.findOne({
@@ -78,36 +78,29 @@ exports.updateBlog = async (req, res) => {
         const update = {}
         fields.forEach(field => {
             if (req.body[field]) {
-                if (field === 'img') {
-                    update[field] = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-                } else {
-                    update[field] = req.body[field]
-                }
+                update[field] = req.body[field]
             }
         })
+
+        if(req.file){
+            update.img = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+        }
+
 
         // Update the product in the database
         const updateBlog = await modelBlog.findByIdAndUpdate(
             idBlog, 
-            {
-                $set: update
-            }, 
+            { $set: update }, 
             {
                 new: true,
                 runValidators: true
             }
         )
 
-        // Check if the update was successful
-        if (!updateProduct) {
-            return res.status(400).json({
-                message: 'blog is not update'
-            })
-        }
-
         // Send successful response
         res.status(200).json({
             message: 'blgo is delete with success',
+            updateBlog
         })
 
     } catch (error) {
