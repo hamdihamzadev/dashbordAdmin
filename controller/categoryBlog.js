@@ -61,8 +61,6 @@ exports.updateCategory = async (req, res) => {
         const admin = req.authAdmin.adminId
         const idCategory = req.params.id
 
-        console.log(req.body)
-        
         // FIELDS
         const fields = ['name', 'visibility', 'delete']
 

@@ -8,17 +8,19 @@ exports.createBlog = async (req, res) => {
         // get fields
         const admin = req.authAdmin.adminId
         const {
+            nameStore,
             title,
             subtitle,
             description,
-            img,
             category,
             visibilty
         } = req.body
 
+
         // create new blog
         const newBlog = new modelBlog({
             admin,
+            nameStore,
             title,
             subtitle,
             description,
@@ -26,7 +28,7 @@ exports.createBlog = async (req, res) => {
             category,
             visibilty,
             delete: false,
-            date: new Date().getDate() + '-' + new Date().getMonth() + '-' + new Date().getFullYear()
+            date: `${new Date().getDate()}-${new Date().getMonth() }-${new Date().getFullYear()}` 
         })
         if (!newBlog) {
             return res.status(400).json({
@@ -36,19 +38,18 @@ exports.createBlog = async (req, res) => {
 
         // save blog
         const saveBlog = await newBlog.save()
-        if (!saveBlog) {
-            return res.status(400).json({
-                message: 'blog is not saved'
-            })
-        }
+
 
         return res.status(201).json({
-            message: 'blog created with successful'
+            message: 'blog created with successful',
+            newBlog:saveBlog
+
         })
 
     } catch (error) {
         res.status(500).json({
-            error: error.message
+            error: error.message,
+
         })
     }
 }
