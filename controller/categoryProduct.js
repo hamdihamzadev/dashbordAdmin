@@ -40,10 +40,26 @@ exports.GetAllCategories=async(req,res)=>{
         if(!getCategories){
             return res.status(404).json({message:'no category found'})
         }
+  
         res.status(200).json({categories:getCategories})
     }
     catch(error){
         res.status(500).json({error:error.message})
+    }
+}
+
+exports.getCatgegoriesByCustomer=async (req,res)=>{
+    try{
+        const nameStore=req.params.namestore
+        const getCategories=await modelCategory.find({nameStore}).select('-admin')
+        
+        if(!getCategories){
+            return res.status(404).json({message:'no category found'})
+        }
+        res.status(200).json({categories:getCategories})
+    }
+    catch(error){
+        res.status(500).json({error})
     }
 }
 
