@@ -136,6 +136,32 @@ exports.getOneProduct = async (req, res) => {
     }
 }
 
+// get one product for store
+exports.getOneProductForStore= async (req,res)=>{
+    try{
+        const nameStore=req.params.nameStore
+        const idProduct=req.params.id
+
+        // find product
+        const findProduct=await modelproduct.findOne({nameStore,_id:idProduct}).select('-admin')
+        if(!findProduct){
+            return res.status(404).json({
+                error: 'product not found'
+            })
+        }
+
+        res.status(200).json({
+            product: findProduct
+        })
+
+    }
+    catch(error){
+        res.status(500).json({
+            error
+        })
+    }
+}
+
 
 // get all products
 exports.getAllProducts = async (req, res) => {
