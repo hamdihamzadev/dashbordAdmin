@@ -20,7 +20,6 @@ const reviewSchema=mongoose.Schema({
         ref:'Product',
         required: true
     },
-
     comment:{
         type:String,
         required: true

@@ -1,5 +1,7 @@
 const modelproduct = require('../models/product')
-const modelCategory=require('../models/categoryProduct')
+const modelCategory = require('../models/categoryProduct')
+const modelOrders = require('../models/order')
+const modelreview = require('../models/review')
 
 // create product
 exports.createProduct = async (req, res) => {
@@ -14,7 +16,7 @@ exports.createProduct = async (req, res) => {
             shipping,
             promotion,
         } = req.body
-        const parsePromotion=JSON.parse(promotion)
+        const parsePromotion = JSON.parse(promotion)
         const newProduct = new modelproduct({
             admin: req.authAdmin.adminId,
             category,
@@ -24,7 +26,7 @@ exports.createProduct = async (req, res) => {
             quantity,
             description,
             shipping,
-            promotion:parsePromotion,
+            promotion: parsePromotion,
             imgs: req.files.map(file => `${req.protocol}://${req.get('host')}/images/${file.filename}`),
             visibility: true,
             delete: false,
@@ -32,11 +34,11 @@ exports.createProduct = async (req, res) => {
         })
 
         const saveProduct = await newProduct.save()
-   
+
         res.status(201).json({
-            product:saveProduct
+            product: saveProduct
         })
-        
+
     } catch (error) {
         res.status(500).json({
             error: error.message
@@ -47,7 +49,7 @@ exports.createProduct = async (req, res) => {
 // for delete for visibility for another data
 exports.updateProduct = async (req, res) => {
     try {
-        const fields = ['category','name','price','quantity','description','shipping','visibility','delete']
+        const fields = ['category', 'name', 'price', 'quantity', 'description', 'shipping', 'visibility', 'delete']
         const idProduct = req.params.id
 
         // find product
@@ -65,25 +67,25 @@ exports.updateProduct = async (req, res) => {
 
         // create object product update
         const update = {}
-        if(req.files && req.files.length > 0){
-            update.imgs=req.files.map(file => `${req.protocol}://${req.get('host')}/images/${file.filename}`)
+        if (req.files && req.files.length > 0) {
+            update.imgs = req.files.map(file => `${req.protocol}://${req.get('host')}/images/${file.filename}`)
         }
 
-        if(req.body.promotion){
-            update.promotion=JSON.parse(req.body.promotion)
+        if (req.body.promotion) {
+            update.promotion = JSON.parse(req.body.promotion)
         }
 
         fields.forEach(field => {
             if (req.body[field]) {
-              update[field] = req.body[field]
+                update[field] = req.body[field]
             }
         });
 
         // Update the product in the database
         const updateProduct = await modelproduct.findByIdAndUpdate(
-            idProduct,
-            { $set: update},
-            {
+            idProduct, {
+                $set: update
+            }, {
                 new: true,
                 runValidators: true
             }
@@ -99,7 +101,7 @@ exports.updateProduct = async (req, res) => {
         // Send successful response
         res.status(200).json({
             message: 'product is update with success',
-            updateProduct:updateProduct
+            updateProduct: updateProduct
         })
 
     } catch (error) {
@@ -111,10 +113,10 @@ exports.updateProduct = async (req, res) => {
 }
 
 // get one product
-exports.getOneProduct = async (req,res) => {
+exports.getOneProduct = async (req, res) => {
     try {
         const findProduct = await modelproduct.findOne({
-            _id: req.params.id, 
+            _id: req.params.id,
             admin: req.authAdmin.adminId,
         }).select('-admin')
 
@@ -134,64 +136,92 @@ exports.getOneProduct = async (req,res) => {
     }
 }
 
+
+// get all products
+exports.getAllProducts = async (req, res) => {
+    try {
+
+        // GET ID ADMIN
+        const admin = req.authAdmin.adminId
+
+        // GET ALL PRODUCTS
+        const getProducts = await modelproduct.find({
+            admin
+        }).select('-admin')
+        if (!getProducts) {
+            return res.status(404).json({
+                message: 'no products found'
+            })
+        }
+
+        // SEND PRODUCTS
+        res.status(200).json({
+            products: getProducts
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            error: error.message
+        })
+    }
+}
+
 // get products the category
-exports.getProductsCategory=async(req,res)=>{
-    try{
+exports.getProductsCategoryForStore = async (req, res) => {
+    try {
         // get variables
-        const idCategory= req.params.id
-        const admin=req.authAdmin.adminId
+        const idCategory = req.params.id
+        const nameStore = req.params.nameStore
 
-         // find category
-        const findCategory=await modelCategory.findOne({_id:idCategory,admin,delete:false}).select('-admin')
-        if(!findCategory){
+        // FIND PRODUCTS
+        const findProducts = await modelproduct.find({
+            nameStore,
+            category: idCategory,
+            visibility: true,
+            delete: false
+        }).select('-admin').lean()
+
+        if (!findProducts) {
             res.status(404).json({
-                message: 'category is not found or deleted'
+                message: 'products is not found or deleted/invisibile'
             })
         }
 
-        // find products
-        const findProducts=await modelproduct.find({admin,category:idCategory,delete:false}).select('-admin')
-        if(!findProducts){
+        // FIND ORDERS
+        const getOrders = await modelOrders.find({
+            nameStore
+        }).select('-admin')
+
+        if (!getOrders) {
             res.status(404).json({
-                message: 'products is not found or deleted'
+                message: 'orders is not found'
             })
         }
+
+        // FIND REVIEWS
+        const getReviews=await modelreview.find({
+            nameStore,
+        }).select('-admin')
+
+
+        //  UPDATE TABLE PRODUCTS
+        const updatedProducts = findProducts.map(product=>({
+            ...product,
+            orders:getOrders.filter(order => order.product === product._id).length,
+            reviews:getReviews.filter(review => review.product === product._id ).length
+        }))
+            
+
 
         // send products the category
         res.status(200).json({
-            message:'products is get with succefule',
-            products:findProducts
+            message: 'products is get with succefule',
+            products: updatedProducts
         })
-    }
-    
-    catch (error) {
+    } catch (error) {
         res.status(500).json({
             error: error.message
         })
 
     }
 }
-
-// get all products
-exports.getAllProducts=async (req,res)=>{
-    try{
-
-        // GET ID ADMIN
-        const admin=req.authAdmin.adminId
-
-        // GET ALL PRODUCTS
-        const getProducts=await modelproduct.find({admin}).select('-admin')
-        if(!getProducts){
-            return res.status(404).json({message:'no products found'})
-        }
-
-        // SEND PRODUCTS
-        res.status(200).json({products:getProducts})
-
-    }
-    catch(error){
-        res.status(500).json({error:error.message})
-    }
-}
-
-
