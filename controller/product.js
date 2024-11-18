@@ -137,21 +137,35 @@ exports.getOneProduct = async (req, res) => {
 }
 
 // get one product for store
+<<<<<<< HEAD
 exports.getOneProductForStore= async (req,res)=>{
+=======
+exports.getOneProductForStore = async (req,res)=>{
+>>>>>>> 3236f01 (add config vercel)
     try{
         const nameStore=req.params.nameStore
         const idProduct=req.params.id
 
+<<<<<<< HEAD
         // find product
         const findProduct=await modelproduct.findOne({nameStore,_id:idProduct}).select('-admin')
         if(!findProduct){
             return res.status(404).json({
+=======
+        const findProduct= await modelproduct.findOne({nameStore,_id:idProduct}).select('-admin')
+        if(!findProduct){
+            res.status(404).json({
+>>>>>>> 3236f01 (add config vercel)
                 error: 'product not found'
             })
         }
 
         res.status(200).json({
+<<<<<<< HEAD
             product: findProduct
+=======
+            product:findProduct
+>>>>>>> 3236f01 (add config vercel)
         })
 
     }
