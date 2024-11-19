@@ -5,8 +5,8 @@ const authCustomer=require('../middlware/authCustomer')
 const controller=require('../controller/customer')
 
 // POST
-router.post('/signup',authAdmin,controller.SigninCustomer)
-router.post('/login',authAdmin,authCustomer,controller.loginCustomer)
+router.post('/signup',controller.SigninCustomer)
+router.post('/login',authCustomer,controller.loginCustomer)
 
 // GET
 router.get('/connected',authAdmin,authCustomer,controller.getCustomerConnected)

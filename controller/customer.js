@@ -1,4 +1,5 @@
 const modelCustomer = require('../models/customer')
+const modelAdmin=require('../models/admin')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
@@ -13,16 +14,25 @@ exports.SigninCustomer = async (req, res) => {
             lastName,
             phone,
             contry,
-            city,
-            adress,
             email,
             password
         } = req.body
-        const admin = req.authAdmin.adminId
+
+
+        // find id admin
+        const getAdmin=await modelAdmin.findOne({nameStore})
+
+        if (!getAdmin) {
+            return res.status(404).json({
+                message: 'Admin not found for the specified store'
+            })
+        }
+
+
 
         // Verify email if it has been used before
         const vfEmail = await modelCustomer.findOne({
-            admin,
+            nameStore,
             email
         })
         if (vfEmail) {
@@ -36,14 +46,14 @@ exports.SigninCustomer = async (req, res) => {
 
         // CREATE NEW CUSTOMER
         const newCustomer = new modelCustomer({
-            admin,
+            admin:getAdmin._id,
             nameStore,
             firstName,
             lastName,
             phone,
             contry,
-            city,
-            adress,
+            city:'',
+            adress:'',
             email,
             password: hashPassword,
             delete: false,
@@ -62,7 +72,7 @@ exports.SigninCustomer = async (req, res) => {
         }
 
         res.status(201).json({
-            message: 'customer is created with successful'
+            message: 'Your account is created with successful'
         })
 
     } catch (error) {

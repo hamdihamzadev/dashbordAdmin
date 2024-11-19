@@ -24,6 +24,7 @@ const reviewSchema=mongoose.Schema({
         type:String,
         required: true
     },
+    
     rating:{
         type:Number,
         required: true
