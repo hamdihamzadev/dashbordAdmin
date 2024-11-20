@@ -6,10 +6,10 @@ const controller=require('../controller/customer')
 
 // POST
 router.post('/signup',controller.SigninCustomer)
-router.post('/login',authCustomer,controller.loginCustomer)
+router.post('/login',controller.loginCustomer)
 
 // GET
-router.get('/connected',authAdmin,authCustomer,controller.getCustomerConnected)
+router.get('/CustomerConnected/:nameStore',controller.getCustomerConnected)
 router.get('/all',authAdmin,controller.GetAllCustomers)
 
 // PUT

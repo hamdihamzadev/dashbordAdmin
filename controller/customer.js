@@ -85,43 +85,32 @@ exports.SigninCustomer = async (req, res) => {
 // SIGN IN CUSTOMER
 exports.loginCustomer = async (req, res) => {
     try {
-        const {
-            password
-        } = req.body
-        const admin = req.authAdmin.adminId
-        const customerId = req.authCustomer.customerId
+        const {email,password,nameStore} = req.body
 
         // FIND CUSTOMER
         const findCustomer = await modelCustomer.findOne({
-            admin,
-            customerId
+            email,
+            nameStore
         })
-        if (!findCustomer) {
-            return res.status(404).json({
-                message: 'customer not found'
-            })
-        }
+
+        console.log(req.body)
 
         // CHECK IF DELETED
         if (!findCustomer) {
             return res.status(400).json({
-                message: 'customer no found'
+                message: 'Email is incorrecte'
             })
         } else if (findCustomer.delete === true) {
             return res.status(400).json({
-                message: 'customer is deleted'
+                message: 'Customer is deleted'
             })
-        } else if (findCustomer.block === true) {
-            return res.status(400).json({
-                message: 'customer is block'
-            })
-        }
+        } 
 
         // verification password
         const vfPassword = await bcrypt.compare(password, findCustomer.password)
         if (!vfPassword) {
             return res.status(404).json({
-                message: 'passwrod is incorrecte'
+                message: 'Passwrod is incorrecte'
             })
         }
 
@@ -132,7 +121,8 @@ exports.loginCustomer = async (req, res) => {
                 process.env.JWT_SECRET_CUSTOMER, {
                     expiresIn: '24h'
                 }
-            )
+            ),
+            message:'Login is finish with successful'
         })
     } catch (error) {
         res.status(500).json({
@@ -146,14 +136,16 @@ exports.getCustomerConnected = async (req, res) => {
     try {
 
         // GET ALL AUTHS 
-        const admin = req.authAdmin.adminId
-        const customerId = req.authCustomer.customerId
+        const nameStore=req.params.nameStore
+        // const customerId = req.authCustomer.customerId
+        // console.log(req.body)
 
         // FIND CUSTOMER
         const findCustomer = await modelCustomer.findOne({
-            admin,
-            _id: customerId
+            nameStore,
+            // _id: customerId
         }).select('-admin-_id')
+        
         if (!findCustomer) {
             return res.status(404).json({
                 message: 'customer is not found'

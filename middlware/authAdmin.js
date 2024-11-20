@@ -3,6 +3,10 @@ require('dotenv').config()
 
 module.exports=async(req,res,next)=>{
     try{
+        console.log('Authorization header:', req.headers.authorization);
+        if (!req.headers.authorization) {
+            return res.status(401).json({ message: 'Authorization header is missing' });
+          }
         const token=req.headers.authorization.split(' ')[1]
         const decodedToken=jwt.verify(token,process.env.JWT_SECRET_ADMIN)
         const adminId=decodedToken.adminId
