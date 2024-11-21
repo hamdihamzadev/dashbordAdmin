@@ -62,33 +62,20 @@ exports.getCartCustomer = async (req, res) => {
         const nameStore = req.params.nameStore
         const customer = req.authCustomer.customerId
 
-        // FIND ID ADMIN
-        const dataAdmin = await modelAdmin.findOne({
-            nameStore
-        })
-        if (!dataAdmin) {
-            return res.status(404).json({
-                message: 'Store not found'
-            });
-        }
-
-        const idAdmin = dataAdmin._id
-
-
         // FIND CART THE CUSTOMER
         const findCart = await modelCart.findOne({
             nameStore,
             customer,
-            admin: idAdmin
-        }).select('-admin')
+        }).select('-admin').populate('items.product')
 
-        console.log(modelCart)
 
         if (!findCart) {
             return res.status(404).json({
                 message: 'Customer dont have Cart'
             })
         }
+
+        console.log(findCart)
 
         // SEND FAVORITES THE CUSTOMER
         res.status(200).json({
@@ -122,13 +109,12 @@ exports.AddItemToCart = async (req, res) => {
         }
 
         // NEW ITEM
-        const {product,quantity,total}=req.body
+        const {product,quantity}=req.body
 
         // PUSH ITEM IN ITEMS CART
         cartCustomer.items.push({
             product,
             quantity,
-            total,
             delete:false,
             date:`${new Date().getDate()} - ${new Date().getMonth()} - ${new Date().getFullYear()}`
         })
@@ -144,7 +130,6 @@ exports.AddItemToCart = async (req, res) => {
 
         res.status(201).json({
             message: 'item is add in cart with successful',
-            newItem
         })
 
 

@@ -25,16 +25,12 @@ const cartSchema = mongoose.Schema({
             type: Number,
             required: false
         },
-        total: {
-            type: Number,
-            required: false
-        },
         delete:{
             type: Boolean,
             required: false
         },
         date: {
-            type: Date,
+            type: String,
             required: false
         },
     }],
