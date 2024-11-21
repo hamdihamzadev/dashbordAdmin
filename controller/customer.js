@@ -93,7 +93,6 @@ exports.loginCustomer = async (req, res) => {
             nameStore
         })
 
-        console.log(req.body)
 
         // CHECK IF DELETED
         if (!findCustomer) {
@@ -138,7 +137,7 @@ exports.getCustomerConnected = async (req, res) => {
         // GET ALL AUTHS 
         const nameStore=req.params.nameStore
         // const customerId = req.authCustomer.customerId
-        // console.log(req.body)
+
 
         // FIND CUSTOMER
         const findCustomer = await modelCustomer.findOne({
@@ -256,8 +255,6 @@ exports.updateCustomerByAdmin = async (req, res) => {
         const deleted = req.body.delete
         const block = req.body.block
 
-        console.log(block)
-
         // FIND CUSTOMER
         const findCustomer = await modelCustomer.findOne({
             admin,
@@ -283,8 +280,6 @@ exports.updateCustomerByAdmin = async (req, res) => {
             { $set: update },
             { new: true , runValidators: true }
         )
-
-        console.log(updateBlock)
 
         res.status(200).json({
             customerUpdate: updateBlock

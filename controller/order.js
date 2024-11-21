@@ -58,9 +58,6 @@ exports.createOrderByAdmin=async(req,res)=>{
         const admin = req.authAdmin.adminId
         const customer=req.params.id
 
-        console.log(customer,'customer')
-        console.log(req.body)
-
         // FIELDS 
         const {
             contry,

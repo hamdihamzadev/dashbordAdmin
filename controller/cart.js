@@ -1,32 +1,51 @@
 const modelCart = require('../models/cart')
+const modelAdmin = require('../models/admin')
 
 // CREATE CART IN SIGN UP
 exports.createCart = async (req, res) => {
     try {
-        // GET ID ADMIN AND CUSTOMER
-        const admin = req.authAdmin.adminId
+        // GET ID  CUSTOMER AND NAME STORE AND ID CUSTOMER
+        const nameStore = req.body.nameStore
         const customer = req.authCustomer.customerId
-
-        // CREATE NEW CART
-        const newCart = new modelCart({
-            admin,
-            customer,
-            items: []
+        const dataAdmin = await modelAdmin.findOne({
+            nameStore
         })
 
-        // SAVE Cart
-        const saveCart = await newCart.save()
-        if (!saveCart) {
-            return res.status(400).json({
-                message: 'cart the customer is not created'
+        if (!dataAdmin) {
+            return res.status(404).json({
+                message: 'Store not found'
+            });
+        }
+
+        const idAdmin = dataAdmin._id
+
+
+        // CREATE NEW CART 
+        const cart = await modelCart.findOne({
+            nameStore,
+            admin: idAdmin,
+            customer
+        })
+
+
+        if (!cart) {
+            const newCart = new modelCart({
+                customer,
+                admin: idAdmin,
+                nameStore,
+                items: [],
+                date: `${new Date().getDate()} - ${new Date().getMonth()} - ${new Date().getFullYear()}`
+            })
+
+            await newCart.save()
+            // SEND CART
+            res.status(201).json({
+                message: 'Cart the customer is created with successful',
+
             })
         }
 
-        // SEND CART
-        res.status(201).json({
-            message: 'Cart the customer is created with successful',
 
-        })
 
     } catch (error) {
         res.status(500).json({
@@ -40,14 +59,30 @@ exports.createCart = async (req, res) => {
 exports.getCartCustomer = async (req, res) => {
     try {
         // ID ADMIN AND CUSTOMER
-        const admin = req.authAdmin.adminId
+        const nameStore = req.params.nameStore
         const customer = req.authCustomer.customerId
+
+        // FIND ID ADMIN
+        const dataAdmin = await modelAdmin.findOne({
+            nameStore
+        })
+        if (!dataAdmin) {
+            return res.status(404).json({
+                message: 'Store not found'
+            });
+        }
+
+        const idAdmin = dataAdmin._id
+
 
         // FIND CART THE CUSTOMER
         const findCart = await modelCart.findOne({
-            admin,
-            customer
+            nameStore,
+            customer,
+            admin: idAdmin
         }).select('-admin')
+
+        console.log(modelCart)
 
         if (!findCart) {
             return res.status(404).json({
@@ -71,26 +106,32 @@ exports.getCartCustomer = async (req, res) => {
 exports.AddItemToCart = async (req, res) => {
     try {
         // ID ADMIN AND CUSTOMER
-        const admin = req.authAdmin.adminId
+        const nameStore = req.params.nameStore
         const customer = req.authCustomer.customerId
-
-        // NEW ITEM
-        const newItem = req.body.item
-
+ 
         // FIND CUSTOMER
         const cartCustomer = await modelCart.findOne({
-            admin,
+            nameStore,
             customer
         })
 
         if (!cartCustomer) {
             return res.status(404).json({
-                message: 'customer dont have any favorites'
+                message: 'customer dont have cart'
             })
         }
 
+        // NEW ITEM
+        const {product,quantity,total}=req.body
+
         // PUSH ITEM IN ITEMS CART
-        cartCustomer.items.push(newItem)
+        cartCustomer.items.push({
+            product,
+            quantity,
+            total,
+            delete:false,
+            date:`${new Date().getDate()} - ${new Date().getMonth()} - ${new Date().getFullYear()}`
+        })
 
         // SAVE CART
         const saveCart = await cartCustomer.save()
@@ -180,7 +221,7 @@ exports.getProductsDeleted = async (req, res) => {
         findAllCarts
             .map(cart => cart.items.length !== 0 ? favor.items : '')
             .forEach(itemsCustomer => itemsCustomer
-            .forEach(item => item.delete === true ? productsDeleted.push(item.product) : ''))
+                .forEach(item => item.delete === true ? productsDeleted.push(item.product) : ''))
 
 
     } catch (error) {
@@ -192,26 +233,31 @@ exports.getProductsDeleted = async (req, res) => {
 
 
 // GET NUMBERS ITEM DELETED IN CUSTOMER
-exports.getItemDeletedInCustomer=async(req,res)=>{
-    try{
+exports.getItemDeletedInCustomer = async (req, res) => {
+    try {
         // ID ADMIN AND CUSTOMER
         const admin = req.authAdmin.adminId
         const customer = req.params.idCustomer
 
         // FIND CART CUSTOMER
-        const cartCustomer=await modelCart.findOne({
+        const cartCustomer = await modelCart.findOne({
             admin,
             customer
         }).select('-admin -customer')
-        if(!cartCustomer){
-            return res.status(404).json({message:'customer dont have cart'})
+        if (!cartCustomer) {
+            return res.status(404).json({
+                message: 'customer dont have cart'
+            })
         }
 
         // GET PRODUCT DELETED
-        const getProductsDeleted= cartCustomer.items.filter( ele => ele.delete === true )
-        res.status(200).json({products:getProductsDeleted})
-    }
-    catch(error){
-        res.status(500).json({error:error.message})
+        const getProductsDeleted = cartCustomer.items.filter(ele => ele.delete === true)
+        res.status(200).json({
+            products: getProductsDeleted
+        })
+    } catch (error) {
+        res.status(500).json({
+            error: error.message
+        })
     }
 }
