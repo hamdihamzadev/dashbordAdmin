@@ -5,10 +5,14 @@ const authAdmin=require('../middlware/authAdmin')
 const authCustomer=require('../middlware/authCustomer')
 
 router.post('/newCart',authCustomer,controller.createCart)
-router.get('/getCart/:nameStore',authCustomer,controller.getCartCustomer)
-router.post('/addItem/:nameStore',authCustomer,controller.AddItemToCart)
+router.post('/addItem/:cartId',authCustomer,controller.AddItemToCart)
+
 router.put('/deleteItem/:id',authAdmin,authCustomer,controller.deleteItemInCart)
+router.put('/UpdateQuantity/:cartId/:itemId',authCustomer,controller.changeQuantityItem)
+router.put('/DeleteItem/:cartId/:itemId',authCustomer,controller.deleteItem)
+
 router.get('/itemsDeletedtCustomer',authAdmin,authCustomer,controller.getItemDeletedInCustomer)
 router.get('/allPrdocuctsDeleted',authAdmin,controller.getProductsDeleted)
+router.get('/getCart/:nameStore',authCustomer,controller.getCartCustomer)
 
 module.exports=router

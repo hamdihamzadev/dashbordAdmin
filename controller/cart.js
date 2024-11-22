@@ -7,9 +7,10 @@ exports.createCart = async (req, res) => {
         // GET ID  CUSTOMER AND NAME STORE AND ID CUSTOMER
         const nameStore = req.body.nameStore
         const customer = req.authCustomer.customerId
-        const dataAdmin = await modelAdmin.findOne({
-            nameStore
-        })
+
+        const dataAdmin= await modelAdmin.findOne(
+            {nameStore}
+        )
 
         if (!dataAdmin) {
             return res.status(404).json({
@@ -18,7 +19,6 @@ exports.createCart = async (req, res) => {
         }
 
         const idAdmin = dataAdmin._id
-
 
         // CREATE NEW CART 
         const cart = await modelCart.findOne({
@@ -37,10 +37,11 @@ exports.createCart = async (req, res) => {
                 date: `${new Date().getDate()} - ${new Date().getMonth()} - ${new Date().getFullYear()}`
             })
 
-            await newCart.save()
+            const saveCart=await newCart.save()
             // SEND CART
             res.status(201).json({
                 message: 'Cart the customer is created with successful',
+                cart:saveCart
 
             })
         }
@@ -66,7 +67,7 @@ exports.getCartCustomer = async (req, res) => {
         const findCart = await modelCart.findOne({
             nameStore,
             customer,
-        }).select('-admin').populate('items.product')
+        }).select('-admin -customer').populate('items.product')
 
 
         if (!findCart) {
@@ -74,8 +75,6 @@ exports.getCartCustomer = async (req, res) => {
                 message: 'Customer dont have Cart'
             })
         }
-
-        console.log(findCart)
 
         // SEND FAVORITES THE CUSTOMER
         res.status(200).json({
@@ -93,12 +92,12 @@ exports.getCartCustomer = async (req, res) => {
 exports.AddItemToCart = async (req, res) => {
     try {
         // ID ADMIN AND CUSTOMER
-        const nameStore = req.params.nameStore
+        const cartId = req.params.cartId
         const customer = req.authCustomer.customerId
- 
+
         // FIND CUSTOMER
         const cartCustomer = await modelCart.findOne({
-            nameStore,
+            _id:cartId,
             customer
         })
 
@@ -109,14 +108,17 @@ exports.AddItemToCart = async (req, res) => {
         }
 
         // NEW ITEM
-        const {product,quantity}=req.body
+        const {
+            product,
+            quantity
+        } = req.body
 
         // PUSH ITEM IN ITEMS CART
         cartCustomer.items.push({
             product,
             quantity,
-            delete:false,
-            date:`${new Date().getDate()} - ${new Date().getMonth()} - ${new Date().getFullYear()}`
+            delete: false,
+            date: `${new Date().getDate()} - ${new Date().getMonth()} - ${new Date().getFullYear()}`
         })
 
         // SAVE CART
@@ -130,12 +132,74 @@ exports.AddItemToCart = async (req, res) => {
 
         res.status(201).json({
             message: 'item is add in cart with successful',
+            updateCart:saveCart
         })
 
 
     } catch (error) {
         res.status(500).json({
             error: error.message
+        })
+    }
+}
+
+// CHANGE QUANTITY ITEM
+exports.changeQuantityItem = async (req, res) => {
+    try {
+        const cartId = req.params.cartId;
+        const itemId = req.params.itemId;
+        const newQuantity = req.body.newQuantity;
+
+        const updateItem = await modelCart.findOneAndUpdate(
+            { _id: cartId, "items._id": itemId },
+            { $set: { "items.$.quantity": newQuantity } },
+            { new: true,runValidators: true }
+        );
+
+        if (!updateItem) {
+            return res.status(404).json({ message: 'Quantity is not changed' });
+        }
+
+        res.status(200).json({
+            message: 'Quantity changed successfully',
+            cartUpdate: updateItem,
+        });
+    } catch (error) {
+        console.error('Error updating quantity:', error);
+        return res.status(500).json({
+            message: 'An error occurred',
+            error: error.message,
+        });
+    }
+};
+
+
+// DELETE ITEM
+exports.deleteItem = async (req, res) => {
+    try {
+        const cartId = req.params.cartId
+        const itemId = req.params.itemId
+
+        const updateItem=await modelCart.findOneAndUpdate(
+            { _id:cartId , "items._id":itemId },
+            { $set :{ "items.$.delete":false } },
+            {new:true}
+        )
+        
+        if (!updateItem) {
+            return res.status(404).json({
+                message: 'item is not deleted'
+            })
+        }
+
+        res.status(200).json({
+            updateItem
+        })
+
+    } catch (error) {
+        return res.status(error)
+            .json({
+                error
         })
     }
 }
