@@ -1,5 +1,7 @@
 const modelCart = require('../models/cart')
 const modelAdmin = require('../models/admin')
+const modelProduct= require('../models/product')
+const { json } = require('express')
 
 // CREATE CART IN SIGN UP
 exports.createCart = async (req, res) => {
@@ -107,6 +109,24 @@ exports.AddItemToCart = async (req, res) => {
             })
         }
 
+        // FIND PRODUCT
+        const findProduct= await modelProduct.findOne({
+            _id:req.body.product
+        })
+
+        if(!findProduct){
+            return res.status(404).json({message:'Product is not found'})
+        }
+
+        // CHECK STOCK
+        if(findProduct.visibility===false || findProduct.delete===true){
+            return res.status(404).json({message:'The product is no longer available in the store'})
+        } else if(findProduct.quantity===0){
+            return res.status(404).json({message:'stock out'})
+        } else if(findProduct.quantity < req.body.quantity){
+            return res.status(404).json({message:`Only ${findProduct.quantity} items are left in stock; please reduce the quantity.`})
+        }
+
         // NEW ITEM
         const {
             product,
@@ -137,8 +157,9 @@ exports.AddItemToCart = async (req, res) => {
 
 
     } catch (error) {
+        console.error(`error add item is ${error}`)
         res.status(500).json({
-            error: error.message
+            message:'An error has occurred. Please try again later.'
         })
     }
 }
@@ -179,10 +200,11 @@ exports.deleteItem = async (req, res) => {
     try {
         const cartId = req.params.cartId
         const itemId = req.params.itemId
+        const customer = req.authCustomer.customerId
 
         const updateItem=await modelCart.findOneAndUpdate(
-            { _id:cartId , "items._id":itemId },
-            { $set :{ "items.$.delete":false } },
+            { _id:cartId ,customer, "items._id":itemId },
+            { $set :{ "items.$.delete":true } },
             {new:true}
         )
         
@@ -192,8 +214,12 @@ exports.deleteItem = async (req, res) => {
             })
         }
 
+        const cart=await modelCart.findOne({customer,_id:cartId}).select('-admin -customer')
+
         res.status(200).json({
-            updateItem
+            cartAfterDeleteItem:updateItem,
+            message:'item is deleted with success',
+            cart
         })
 
     } catch (error) {
