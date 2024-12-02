@@ -1,7 +1,7 @@
 const modelCart = require('../models/cart')
 const modelAdmin = require('../models/admin')
-const modelProduct= require('../models/product')
-const { json } = require('express')
+const modelProduct = require('../models/product')
+
 
 // CREATE CART IN SIGN UP
 exports.createCart = async (req, res) => {
@@ -10,9 +10,9 @@ exports.createCart = async (req, res) => {
         const nameStore = req.body.nameStore
         const customer = req.authCustomer.customerId
 
-        const dataAdmin= await modelAdmin.findOne(
-            {nameStore}
-        )
+        const dataAdmin = await modelAdmin.findOne({
+            nameStore
+        })
 
         if (!dataAdmin) {
             return res.status(404).json({
@@ -39,11 +39,11 @@ exports.createCart = async (req, res) => {
                 date: `${new Date().getDate()} - ${new Date().getMonth()} - ${new Date().getFullYear()}`
             })
 
-            const saveCart=await newCart.save()
+            const saveCart = await newCart.save()
             // SEND CART
             res.status(201).json({
                 message: 'Cart the customer is created with successful',
-                cart:saveCart
+                cart: saveCart
 
             })
         }
@@ -99,7 +99,7 @@ exports.AddItemToCart = async (req, res) => {
 
         // FIND CUSTOMER
         const cartCustomer = await modelCart.findOne({
-            _id:cartId,
+            _id: cartId,
             customer
         })
 
@@ -110,21 +110,29 @@ exports.AddItemToCart = async (req, res) => {
         }
 
         // FIND PRODUCT
-        const findProduct= await modelProduct.findOne({
-            _id:req.body.product
+        const findProduct = await modelProduct.findOne({
+            _id: req.body.product
         })
 
-        if(!findProduct){
-            return res.status(404).json({message:'Product is not found'})
+        if (!findProduct) {
+            return res.status(404).json({
+                message: 'Product is not found'
+            })
         }
 
         // CHECK STOCK
-        if(findProduct.visibility===false || findProduct.delete===true){
-            return res.status(404).json({message:'The product is no longer available in the store'})
-        } else if(findProduct.quantity===0){
-            return res.status(404).json({message:'stock out'})
-        } else if(findProduct.quantity < req.body.quantity){
-            return res.status(404).json({message:`Only ${findProduct.quantity} items are left in stock; please reduce the quantity.`})
+        if (findProduct.visibility === false || findProduct.delete === true) {
+            return res.status(404).json({
+                message: 'The product is no longer available in the store'
+            })
+        } else if (findProduct.quantity === 0) {
+            return res.status(404).json({
+                message: 'stock out'
+            })
+        } else if (findProduct.quantity < req.body.quantity) {
+            return res.status(404).json({
+                message: `Only ${findProduct.quantity} items are left in stock; please reduce the quantity.`
+            })
         }
 
         // NEW ITEM
@@ -152,14 +160,14 @@ exports.AddItemToCart = async (req, res) => {
 
         res.status(201).json({
             message: 'item is add in cart with successful',
-            updateCart:saveCart
+            updateCart: saveCart
         })
 
 
     } catch (error) {
         console.error(`error add item is ${error}`)
         res.status(500).json({
-            message:'An error has occurred. Please try again later.'
+            message: 'An error has occurred. Please try again later.'
         })
     }
 }
@@ -171,25 +179,46 @@ exports.changeQuantityItem = async (req, res) => {
         const itemId = req.params.itemId;
         const newQuantity = req.body.newQuantity;
 
-        const updateItem = await modelCart.findOneAndUpdate(
-            { _id: cartId, "items._id": itemId },
-            { $set: { "items.$.quantity": newQuantity } },
-            { new: true,runValidators: true }
-        );
+        console.log(`cartId ===> ${cartId} - itemId ===> ${itemId} - newQuantity ==> ${newQuantity}`)
 
-        if (!updateItem) {
-            return res.status(404).json({ message: 'Quantity is not changed' });
+        // find cart
+        const cartUser=await modelCart.findOne({_id:cartId}).select('-admin -customer').populate('items.product')
+
+        // FIND PRODUCT
+        const findProduct = await modelCart.findOne(
+            { _id: cartId,"items._id":itemId} ,
+            {"items.$":1}
+        ).populate('items.product')
+
+        const product=findProduct.items[0].product
+        if(product.quantity===0){
+            return res.status(404).json({message:'Stock out',cartUser})
+        }else if(product.delete===true || product.visibility===false){
+            return res.status(404).json({message:'The product is no longer available in the store'})
+        }else if(newQuantity>product.quantity){
+           return res.status(404).json({  message: `Only ${product.quantity} items are left in stock; please reduce the quantity.`,cartUser})
         }
+
+        const updateItem = await modelCart.findOneAndUpdate({
+            _id: cartId,
+            "items._id": itemId
+        }, {
+            $set: {
+                "items.$.quantity": newQuantity
+            }
+        }, {
+            new: true,
+            runValidators: true
+        }).select('-admin -customer').populate('items.product')
+
 
         res.status(200).json({
             message: 'Quantity changed successfully',
             cartUpdate: updateItem,
         });
     } catch (error) {
-        console.error('Error updating quantity:', error);
         return res.status(500).json({
-            message: 'An error occurred',
-            error: error.message,
+            error
         });
     }
 };
@@ -202,31 +231,34 @@ exports.deleteItem = async (req, res) => {
         const itemId = req.params.itemId
         const customer = req.authCustomer.customerId
 
-        const updateItem=await modelCart.findOneAndUpdate(
-            { _id:cartId ,customer, "items._id":itemId },
-            { $set :{ "items.$.delete":true } },
-            {new:true}
-        )
-        
-        if (!updateItem) {
+        const deleteItem = await modelCart.findOneAndUpdate({
+            _id: cartId,
+            customer,
+            "items._id": itemId
+        }, {
+            $set: {
+                "items.$.delete": true
+            }
+        }, {
+            new: true
+        }).select('-admin -customer').populate('items.product')
+
+        if (!deleteItem) {
             return res.status(404).json({
                 message: 'item is not deleted'
             })
         }
 
-        const cart=await modelCart.findOne({customer,_id:cartId}).select('-admin -customer')
-
         res.status(200).json({
-            cartAfterDeleteItem:updateItem,
-            message:'item is deleted with success',
-            cart
+            cartAfterDeleteItem: deleteItem,
+            message: 'item is deleted with success',
         })
 
     } catch (error) {
         return res.status(error)
             .json({
                 error
-        })
+            })
     }
 }
 
