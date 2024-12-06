@@ -71,13 +71,6 @@ exports.getCartCustomer = async (req, res) => {
             customer,
         }).select('-admin -customer').populate('items.product')
 
-
-        if (!findCart) {
-            return res.status(404).json({
-                message: 'Customer dont have Cart'
-            })
-        }
-
         // SEND FAVORITES THE CUSTOMER
         res.status(200).json({
             cart: findCart
@@ -85,7 +78,7 @@ exports.getCartCustomer = async (req, res) => {
 
     } catch (error) {
         res.status(500).json({
-            error: error.message
+            error: error
         })
     }
 }
@@ -105,7 +98,7 @@ exports.AddItemToCart = async (req, res) => {
 
         if (!cartCustomer) {
             return res.status(404).json({
-                message: 'customer dont have cart'
+                message: 'this is account dont have cart please login or signup'
             })
         }
 
@@ -114,14 +107,8 @@ exports.AddItemToCart = async (req, res) => {
             _id: req.body.product
         })
 
-        if (!findProduct) {
-            return res.status(404).json({
-                message: 'Product is not found'
-            })
-        }
-
         // CHECK STOCK
-        if (findProduct.visibility === false || findProduct.delete === true) {
+        if (!findProduct || findProduct.visibility === false || findProduct.delete === true) {
             return res.status(404).json({
                 message: 'The product is no longer available in the store'
             })
@@ -152,12 +139,6 @@ exports.AddItemToCart = async (req, res) => {
         // SAVE CART
         const saveCart = await cartCustomer.save()
 
-        if (!saveCart) {
-            res.status(400).json({
-                message: 'item is not save in cart'
-            })
-        }
-
         res.status(201).json({
             message: 'item is add in cart with successful',
             updateCart: saveCart
@@ -178,8 +159,6 @@ exports.changeQuantityItem = async (req, res) => {
         const cartId = req.params.cartId;
         const itemId = req.params.itemId;
         const newQuantity = req.body.newQuantity;
-
-        console.log(`cartId ===> ${cartId} - itemId ===> ${itemId} - newQuantity ==> ${newQuantity}`)
 
         // find cart
         const cartUser=await modelCart.findOne({_id:cartId}).select('-admin -customer').populate('items.product')
@@ -242,6 +221,7 @@ exports.deleteItem = async (req, res) => {
         }, {
             new: true
         }).select('-admin -customer').populate('items.product')
+    
 
         if (!deleteItem) {
             return res.status(404).json({
