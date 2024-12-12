@@ -96,29 +96,28 @@ exports.AddItemToCart = async (req, res) => {
             customer
         })
 
-        if (!cartCustomer) {
-            return res.status(404).json({
-                message: 'this is account dont have cart please login or signup'
-            })
-        }
 
         // FIND PRODUCT
         const findProduct = await modelProduct.findOne({
             _id: req.body.product
         })
 
-        // CHECK STOCK
+        // CHECK AVAIBILITY
         if (!findProduct || findProduct.visibility === false || findProduct.delete === true) {
             return res.status(404).json({
                 message: 'The product is no longer available in the store'
             })
+        // CHECK STOCK
         } else if (findProduct.quantity === 0) {
             return res.status(404).json({
-                message: 'stock out'
+                message: 'stock out',
+                newCart:cartCustomer, 
             })
+        // CHECK QUANTITE COMMANDE
         } else if (findProduct.quantity < req.body.quantity) {
             return res.status(404).json({
-                message: `Only ${findProduct.quantity} items are left in stock; please reduce the quantity.`
+                message: `Only ${findProduct.quantity} items are left in stock; please reduce the quantity.`,
+                newCart:cartCustomer, 
             })
         }
 
@@ -139,16 +138,17 @@ exports.AddItemToCart = async (req, res) => {
         // SAVE CART
         const saveCart = await cartCustomer.save()
 
+        const updateCart=saveCart.populate('items.product').exec();
+
         res.status(201).json({
             message: 'item is add in cart with successful',
-            updateCart: saveCart
+            updateCart
         })
 
 
     } catch (error) {
-        console.error(`error add item is ${error}`)
         res.status(500).json({
-            message: 'An error has occurred. Please try again later.'
+            error
         })
     }
 }
@@ -348,3 +348,9 @@ exports.getItemDeletedInCustomer = async (req, res) => {
         })
     }
 }
+
+
+/**
+ * on click if ==> not login ==+> modal login 
+ * if login ==> post data to backend ==> if product not visible or delete or product delete ===> 
+ */

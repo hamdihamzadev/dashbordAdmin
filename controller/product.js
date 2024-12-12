@@ -122,11 +122,13 @@ exports.getOneProduct = async (req, res) => {
 
         if (!findProduct) {
             return res.status(404).json({
-                error: 'product not found'
+                message: 'product not found',
+                
             })
         }
+
         res.status(200).json({
-            product: findProduct
+            product: findProduct,
         })
 
     } catch (error) {
@@ -136,6 +138,7 @@ exports.getOneProduct = async (req, res) => {
     }
 }
 
+
 // get one product for store
 exports.getOneProductForStore= async (req,res)=>{
     try{
@@ -144,11 +147,13 @@ exports.getOneProductForStore= async (req,res)=>{
 
         // find product
         const findProduct=await modelproduct.findOne({nameStore,_id:idProduct}).select('-admin').lean()
+
         if(!findProduct){
             return res.status(404).json({
                 error: 'product not found'
             })
         }
+
 
         const findReviews= await modelreview.find({nameStore,product:idProduct}).select('-admin')
         if(!findReviews){
@@ -156,6 +161,8 @@ exports.getOneProductForStore= async (req,res)=>{
                 error: 'reviews the product not found'
             })
         }
+
+
 
         const product={
             ...findProduct,
