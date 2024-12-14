@@ -67,9 +67,14 @@ exports.getCartCustomer = async (req, res) => {
 
         // FIND CART THE CUSTOMER
         const findCart = await modelCart.findOne({
-            nameStore,
-            customer,
-        }).select('-admin -customer').populate('items.product')
+                nameStore,
+                customer,
+            })
+            .select('-admin -customer')
+            .populate('items.product')
+            .lean()
+
+        findCart.items = findCart.items.filter(ele => ele.product !== null)
 
         // SEND FAVORITES THE CUSTOMER
         res.status(200).json({
@@ -86,46 +91,56 @@ exports.getCartCustomer = async (req, res) => {
 // ADD ITEM TO CART
 exports.AddItemToCart = async (req, res) => {
     try {
+
+        //  ------------------- GET INFORMATIONS ----------------------
         // ID ADMIN AND CUSTOMER
         const cartId = req.params.cartId
         const customer = req.authCustomer.customerId
-
-        // FIND CUSTOMER
-        const cartCustomer = await modelCart.findOne({
-            _id: cartId,
-            customer
-        })
-
+        // BODY
+        const product = req.body.product
+        const quantity = req.body.quantity
 
         // FIND PRODUCT
         const findProduct = await modelProduct.findOne({
-            _id: req.body.product
+            _id: product
         })
+
+        //  ------------------- CHECK PRODUCT IF ALREADY EXIST IN CART ----------------------
+        const cartForCheck=await modelCart.findOne({
+            _id: cartId,
+            customer
+        })
+        .lean()
+        
+        const checkProduct= cartForCheck.items.find(ele=>ele.product===product)
+        console.log(checkProduct)
+
 
         // CHECK AVAIBILITY
         if (!findProduct || findProduct.visibility === false || findProduct.delete === true) {
             return res.status(404).json({
                 message: 'The product is no longer available in the store'
             })
-        // CHECK STOCK
+            // CHECK STOCK
         } else if (findProduct.quantity === 0) {
             return res.status(404).json({
                 message: 'stock out',
-                newCart:cartCustomer, 
+                newCart: cartCustomer,
             })
-        // CHECK QUANTITE COMMANDE
-        } else if (findProduct.quantity < req.body.quantity) {
+            // CHECK QUANTITE COMMANDE
+        } else if (findProduct.quantity < quantity) {
             return res.status(404).json({
                 message: `Only ${findProduct.quantity} items are left in stock; please reduce the quantity.`,
-                newCart:cartCustomer, 
+                newCart: cartCustomer,
             })
         }
 
-        // NEW ITEM
-        const {
-            product,
-            quantity
-        } = req.body
+
+        // FIND CART CUSTOMER
+        const cartCustomer = await modelCart.findOne({
+            _id: cartId,
+            customer
+        })
 
         // PUSH ITEM IN ITEMS CART
         cartCustomer.items.push({
@@ -136,19 +151,24 @@ exports.AddItemToCart = async (req, res) => {
         })
 
         // SAVE CART
-        const saveCart = await cartCustomer.save()
+        await cartCustomer.save()
 
-        const updateCart=saveCart.populate('items.product').exec();
+        const updateCart = await modelCart
+            .findOne({
+                _id: cartId,
+                customer
+            })
+            .populate('items.product')
+            .select('-admin -customer')
 
         res.status(201).json({
             message: 'item is add in cart with successful',
             updateCart
         })
 
-
     } catch (error) {
         res.status(500).json({
-            error
+            error: error.message
         })
     }
 }
@@ -160,48 +180,67 @@ exports.changeQuantityItem = async (req, res) => {
         const itemId = req.params.itemId;
         const newQuantity = req.body.newQuantity;
 
-        // find cart
-        const cartUser=await modelCart.findOne({_id:cartId}).select('-admin -customer').populate('items.product')
+        // FIND CART
+        const cartUser = await modelCart.findOne({
+            _id: cartId
+        }).select('-admin -customer').populate('items.product')
 
         // FIND PRODUCT
-        const findProduct = await modelCart.findOne(
-            { _id: cartId,"items._id":itemId} ,
-            {"items.$":1}
-        ).populate('items.product')
+        const findProduct = await modelCart
+            .findOne({
+                _id: cartId,
+                "items._id": itemId
+            }, {
+                "items.$": 1
+            })
+            .populate('items.product')
 
-        const product=findProduct.items[0].product
-        if(product.quantity===0){
-            return res.status(404).json({message:'Stock out',cartUser})
-        }else if(product.delete===true || product.visibility===false){
-            return res.status(404).json({message:'The product is no longer available in the store'})
-        }else if(newQuantity>product.quantity){
-           return res.status(404).json({  message: `Only ${product.quantity} items are left in stock; please reduce the quantity.`,cartUser})
+        const product = findProduct.items[0].product
+        if (product.quantity === 0) {
+            return res.status(404).json({
+                message: 'Stock out',
+                cartUser
+            })
+        } else if (product.delete === true || product.visibility === false) {
+            return res.status(404).json({
+                message: 'The product is no longer available in the store'
+            })
+        } else if (newQuantity > product.quantity) {
+            console.log(cartUser)
+            return res.status(404).json({
+                message: `Only ${product.quantity} items are left in stock; please reduce the quantity.`,
+                cartUser
+            })
         }
 
         const updateItem = await modelCart.findOneAndUpdate({
-            _id: cartId,
-            "items._id": itemId
-        }, {
-            $set: {
-                "items.$.quantity": newQuantity
-            }
-        }, {
-            new: true,
-            runValidators: true
-        }).select('-admin -customer').populate('items.product')
+                _id: cartId,
+                "items._id": itemId
+            }, {
+                $set: {
+                    "items.$.quantity": newQuantity
+                }
+            }, {
+                new: true,
+                runValidators: true
+            })
+            .select('-admin -customer')
+            .populate('items.product')
+            .lean()
 
+        updateItem.items = updateItem.items.filter(ele => ele.product !== null)
 
         res.status(200).json({
             message: 'Quantity changed successfully',
             cartUpdate: updateItem,
-        });
+        })
+
     } catch (error) {
         return res.status(500).json({
             error
         });
     }
 };
-
 
 // DELETE ITEM
 exports.deleteItem = async (req, res) => {
@@ -211,21 +250,25 @@ exports.deleteItem = async (req, res) => {
         const customer = req.authCustomer.customerId
 
         const deleteItem = await modelCart.findOneAndUpdate({
-            _id: cartId,
-            customer,
-            "items._id": itemId
-        }, {
-            $set: {
-                "items.$.delete": true
-            }
-        }, {
-            new: true
-        }).select('-admin -customer').populate('items.product')
-    
+                _id: cartId,
+                customer,
+                "items._id": itemId
+            }, {
+                $set: {
+                    "items.$.delete": true
+                }
+            }, {
+                new: true
+            })
+            .select('-admin -customer')
+            .populate('items.product')
+            .lean()
+
+        deleteItem.items = deleteItem.items.filter(ele => ele.product !== null)
 
         if (!deleteItem) {
             return res.status(404).json({
-                message: 'item is not deleted'
+                message: 'item is not deleted please try again'
             })
         }
 
