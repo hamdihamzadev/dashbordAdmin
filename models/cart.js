@@ -30,6 +30,10 @@ const cartSchema = mongoose.Schema({
             type: Boolean,
             required: false
         },
+        purchased:{
+            type: Boolean,
+            required: false
+        },
         date: {
             type: String,
             required: false
