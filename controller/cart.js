@@ -105,23 +105,20 @@ exports.AddItemToCart = async (req, res) => {
             _id: product
         })
 
-        //  ------------------- CHECK PRODUCT IF ALREADY EXIST IN CART ----------------------
-        const cartForCheck=await modelCart.findOne({
+        // FIND CART CUSTOMER
+        const cartCustomer = await modelCart.findOne({
             _id: cartId,
             customer
         })
-        .lean()
-        
-        const checkProduct= cartForCheck.items.find(ele=>ele.product===product)
-        console.log(checkProduct)
 
+        //  ------------------- CHECK AVAIBILITY PRODUCT ----------------------
 
-        // CHECK AVAIBILITY
+        // CHECK AVAIBILITY PRODUCT
         if (!findProduct || findProduct.visibility === false || findProduct.delete === true) {
             return res.status(404).json({
                 message: 'The product is no longer available in the store'
             })
-            // CHECK STOCK
+            // CHECK STOCK PRODUCT
         } else if (findProduct.quantity === 0) {
             return res.status(404).json({
                 message: 'stock out',
@@ -135,35 +132,71 @@ exports.AddItemToCart = async (req, res) => {
             })
         }
 
+        //  ------------------- CHECK PRODUCT IF ALREADY EXIST IN CART ----------------------
 
-        // FIND CART CUSTOMER
-        const cartCustomer = await modelCart.findOne({
-            _id: cartId,
+        const carttoObjectJs=await modelCart.findOne({
+            _id:cartId,
             customer
         })
+        carttoObjectJs.items=carttoObjectJs.items.filter(ele=>ele.delete===false && ele.purchased===false)
+        const checkProduct = carttoObjectJs.items
+            .find(ele => String(ele.product)=== product)
 
+        if (checkProduct) {
+
+          const changeQuantity= await  modelCart.findOneAndUpdate(
+                {
+                    _id:cartId,
+                    customer,
+                    "items._id":checkProduct._id
+                },
+                {
+                    $set:{
+                        "items.$.quantity":quantity
+                    }
+                },
+                {
+                    new:true
+                }
+            )
+            .select('-admin -customer')
+            .populate('items.product')
+            .lean()
+
+            changeQuantity.items= changeQuantity.items.filter(ele=>ele.product!==null && ele.delete===false && ele.purchased===false)
+            
+            res.status(201).json({
+                message:`Your Item is change her quantity in ${quantity}`,
+                cart:changeQuantity
+
+            })
+        }
+
+        //  ------------------- CREATE NEW ITEM IN CART ----------------------
         // PUSH ITEM IN ITEMS CART
+       
         cartCustomer.items.push({
             product,
             quantity,
             delete: false,
+            purchased:false,
             date: `${new Date().getDate()} - ${new Date().getMonth()} - ${new Date().getFullYear()}`
         })
 
         // SAVE CART
         await cartCustomer.save()
-
-        const updateCart = await modelCart
-            .findOne({
-                _id: cartId,
-                customer
-            })
-            .populate('items.product')
-            .select('-admin -customer')
+        const populateCart= await modelCart.findOne({
+            _id:cartId,
+            customer,
+        })
+        .select('-admin -customer')
+        .populate('items.product')
+        .lean()
+        populateCart.items=populateCart.items.filter(ele=>ele.delete===false && ele.purchased===false && ele.product!==null)
 
         res.status(201).json({
             message: 'item is add in cart with successful',
-            updateCart
+            cart:populateCart
         })
 
     } catch (error) {
@@ -329,7 +362,6 @@ exports.deleteItemInCart = async (req, res) => {
     }
 }
 
-
 // GET PRODUCT DELETE
 exports.getProductsDeleted = async (req, res) => {
     try {
@@ -360,7 +392,6 @@ exports.getProductsDeleted = async (req, res) => {
         })
     }
 }
-
 
 // GET NUMBERS ITEM DELETED IN CUSTOMER
 exports.getItemDeletedInCustomer = async (req, res) => {
@@ -393,7 +424,3 @@ exports.getItemDeletedInCustomer = async (req, res) => {
 }
 
 
-/**
- * on click if ==> not login ==+> modal login 
- * if login ==> post data to backend ==> if product not visible or delete or product delete ===> 
- */
