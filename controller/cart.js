@@ -134,16 +134,11 @@ exports.AddItemToCart = async (req, res) => {
 
         //  ------------------- CHECK PRODUCT IF ALREADY EXIST IN CART ----------------------
 
-        const carttoObjectJs=await modelCart.findOne({
-            _id:cartId,
-            customer
-        })
-        carttoObjectJs.items=carttoObjectJs.items.filter(ele=>ele.delete===false && ele.purchased===false)
-        const checkProduct = carttoObjectJs.items
+        const checkProduct = cartCustomer.items
+            .filter(ele=>ele.delete===false && ele.purchased===false)
             .find(ele => String(ele.product)=== product)
 
         if (checkProduct) {
-
           const changeQuantity= await  modelCart.findOneAndUpdate(
                 {
                     _id:cartId,
@@ -165,16 +160,15 @@ exports.AddItemToCart = async (req, res) => {
 
             changeQuantity.items= changeQuantity.items.filter(ele=>ele.product!==null && ele.delete===false && ele.purchased===false)
             
-            res.status(201).json({
+            return res.status(201).json({
                 message:`Your Item is change her quantity in ${quantity}`,
                 cart:changeQuantity
 
             })
-        }
+        }else{
 
         //  ------------------- CREATE NEW ITEM IN CART ----------------------
         // PUSH ITEM IN ITEMS CART
-       
         cartCustomer.items.push({
             product,
             quantity,
@@ -192,12 +186,14 @@ exports.AddItemToCart = async (req, res) => {
         .select('-admin -customer')
         .populate('items.product')
         .lean()
+        
         populateCart.items=populateCart.items.filter(ele=>ele.delete===false && ele.purchased===false && ele.product!==null)
 
-        res.status(201).json({
+        return  res.status(201).json({
             message: 'item is add in cart with successful',
             cart:populateCart
         })
+        }
 
     } catch (error) {
         res.status(500).json({
