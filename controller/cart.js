@@ -74,7 +74,7 @@ exports.getCartCustomer = async (req, res) => {
             .populate('items.product')
             .lean()
 
-        findCart.items = findCart.items.filter(ele => ele.product !== null)
+        findCart.items = findCart.items.filter(ele => ele.product !== null && ele.delete===false && ele.purchased===false)
 
         // SEND FAVORITES THE CUSTOMER
         res.status(200).json({
@@ -122,13 +122,13 @@ exports.AddItemToCart = async (req, res) => {
         } else if (findProduct.quantity === 0) {
             return res.status(404).json({
                 message: 'stock out',
-                newCart: cartCustomer,
+                cart: cartCustomer,
             })
             // CHECK QUANTITE COMMANDE
         } else if (findProduct.quantity < quantity) {
             return res.status(404).json({
                 message: `Only ${findProduct.quantity} items are left in stock; please reduce the quantity.`,
-                newCart: cartCustomer,
+                cart: cartCustomer,
             })
         }
 
@@ -186,7 +186,7 @@ exports.AddItemToCart = async (req, res) => {
         .select('-admin -customer')
         .populate('items.product')
         .lean()
-        
+
         populateCart.items=populateCart.items.filter(ele=>ele.delete===false && ele.purchased===false && ele.product!==null)
 
         return  res.status(201).json({
@@ -207,12 +207,20 @@ exports.changeQuantityItem = async (req, res) => {
     try {
         const cartId = req.params.cartId;
         const itemId = req.params.itemId;
+        const customer = req.authCustomer.customerId
         const newQuantity = req.body.newQuantity;
 
         // FIND CART
         const cartUser = await modelCart.findOne({
-            _id: cartId
-        }).select('-admin -customer').populate('items.product')
+            _id: cartId,
+            customer
+        })
+        .select('-admin -customer')
+        .populate('items.product')
+        .lean()
+
+        cartUser.items=cartUser.items.filter(ele => ele.product !== null && ele.delete===false && ele.purchased===false )
+        console.log(cartUser)
 
         // FIND PRODUCT
         const findProduct = await modelCart
@@ -228,17 +236,18 @@ exports.changeQuantityItem = async (req, res) => {
         if (product.quantity === 0) {
             return res.status(404).json({
                 message: 'Stock out',
-                cartUser
+                cart:cartUser
             })
         } else if (product.delete === true || product.visibility === false) {
             return res.status(404).json({
-                message: 'The product is no longer available in the store'
+                message: 'The product is no longer available in the store',
+                cart:cartUser
             })
         } else if (newQuantity > product.quantity) {
             console.log(cartUser)
             return res.status(404).json({
                 message: `Only ${product.quantity} items are left in stock; please reduce the quantity.`,
-                cartUser
+                cart:cartUser
             })
         }
 
@@ -257,19 +266,19 @@ exports.changeQuantityItem = async (req, res) => {
             .populate('items.product')
             .lean()
 
-        updateItem.items = updateItem.items.filter(ele => ele.product !== null)
+        updateItem.items = updateItem.items.filter(ele => ele.product !== null && ele.delete===false && ele.purchased===false )
 
         res.status(200).json({
             message: 'Quantity changed successfully',
-            cartUpdate: updateItem,
+            cart : updateItem,
         })
 
     } catch (error) {
         return res.status(500).json({
             error
-        });
+        })
     }
-};
+}
 
 // DELETE ITEM
 exports.deleteItem = async (req, res) => {
@@ -293,7 +302,7 @@ exports.deleteItem = async (req, res) => {
             .populate('items.product')
             .lean()
 
-        deleteItem.items = deleteItem.items.filter(ele => ele.product !== null)
+        deleteItem.items = deleteItem.items.filter(ele => ele.product !== null && ele.delete===false && ele.purchased===false )
 
         if (!deleteItem) {
             return res.status(404).json({
@@ -302,7 +311,7 @@ exports.deleteItem = async (req, res) => {
         }
 
         res.status(200).json({
-            cartAfterDeleteItem: deleteItem,
+            cart: deleteItem,
             message: 'item is deleted with success',
         })
 
