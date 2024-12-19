@@ -316,10 +316,56 @@ exports.deleteItem = async (req, res) => {
         })
 
     } catch (error) {
-        return res.status(error)
+        return res.status(500)
             .json({
                 error
             })
+    }
+}
+
+// DELETE ALL ITEMS
+exports.deleteAllItems = async (req,res)=>{
+    try{
+        const customer = req.authCustomer.customerId
+        const cartId=req.params.cartId
+
+        const cartDeleteAllItems= await modelCart.findOneAndUpdate(
+            {
+                _id:cartId,
+                customer
+            },
+            {
+                $set:{
+                    "items.$[].delete":true
+                }
+            },
+            {
+                new:true
+            }
+        )
+        cartDeleteAllItems.items=cartDeleteAllItems.items.filter(ele=>ele.delete===false && ele.purchased===false && ele.product!==null)
+
+        if(!cartDeleteAllItems){
+            return res.status(404)
+            .json({
+                message:'items is not deleted please try again',
+            })
+        }
+ 
+
+        res.status(201)
+        .json({
+            message:'All items have been successfully deleted',
+            cart:cartDeleteAllItems
+        })
+
+
+    }
+    catch(error){
+        return 
+        res.status(500)
+        .json({error})
+             
     }
 }
 

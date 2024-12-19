@@ -10,6 +10,7 @@ router.put('/DeleteItem/:cartId/:itemId',authCustomer,controller.deleteItem)
 
 router.put('/deleteItem/:id',authAdmin,authCustomer,controller.deleteItemInCart)
 router.put('/UpdateQuantity/:cartId/:itemId',authCustomer,controller.changeQuantityItem)
+router.put('/deleteAllItems/:cartId', authCustomer, controller.deleteAllItems )
 
 
 router.get('/itemsDeletedtCustomer',authAdmin,authCustomer,controller.getItemDeletedInCustomer)
