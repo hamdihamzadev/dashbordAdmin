@@ -220,7 +220,6 @@ exports.changeQuantityItem = async (req, res) => {
         .lean()
 
         cartUser.items=cartUser.items.filter(ele => ele.product !== null && ele.delete===false && ele.purchased===false )
-        console.log(cartUser)
 
         // FIND PRODUCT
         const findProduct = await modelCart
@@ -343,6 +342,8 @@ exports.deleteAllItems = async (req,res)=>{
                 new:true
             }
         )
+
+        
         cartDeleteAllItems.items=cartDeleteAllItems.items.filter(ele=>ele.delete===false && ele.purchased===false && ele.product!==null)
 
         if(!cartDeleteAllItems){
