@@ -1,5 +1,6 @@
 const modelOrder = require('../models/order')
 const modelAdmin = require('../models/admin')
+const uuid=require('uuid')
 
 exports.createOrderByCustomer = async (req, res) => {
     try {
@@ -33,6 +34,7 @@ exports.createOrderByCustomer = async (req, res) => {
             })
         }
 
+        
         // RETURN DEADLINE
         const currentDate = new Date();
         currentDate.setDate(currentDate.getDate() + 7);
@@ -54,6 +56,7 @@ exports.createOrderByCustomer = async (req, res) => {
             orderItem,
             status,
             returnDeadline,
+            TrackingId:`TRACK-${uuid.v4()}`,
             delete: false,
             date: `${new Date().getDate()}-${new Date().getMonth() }-${new Date().getFullYear()}`
         })

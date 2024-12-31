@@ -149,6 +149,11 @@ const orderSchema=mongoose.Schema({
         }
     }],
 
+    TrackingId:{
+        type:String,
+        required: false
+    },
+
     delete:{
         type:Boolean,
         required: true
