@@ -4,9 +4,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "vercel dev",
+    "start": "node index.js",
     "gen-secretAdmin": "node secretAdmin.js",
     "gen-secretCustomer": "node secretCustomer.js"
+  },
+
+  "engines": {
+    "node": "20.15.1"
   },
   "keywords": [],
   "author": "",
