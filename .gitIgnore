@@ -1,2 +1,4 @@
 .env
 /node_modules
+secretAdmin.js
+secretCustomer.js
