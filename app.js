@@ -44,7 +44,7 @@ app.use(express.json())
 
  // use api
  app.get('/',(req,res)=>{
-    res.send('Hello World')
+    res.send('Hello hamza')
  })
 app.use('/api/admin',routerAdmin)
 app.use('/api/categoryProduct',routerCategoryProduct)
