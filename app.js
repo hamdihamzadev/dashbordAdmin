@@ -34,8 +34,7 @@ connectDB()
 // autorisation
 require('dotenv').config()
 app.use(cors({
-    // origin:process.env.NODE_ENV==='production' ? process.env.PROD_ORIGIN : process.env.LOCAL_ORIGIN ,
-    origin:'http://localhost:8080 ',
+    origin:process.env.NODE_ENV==='production' ? process.env.PROD_ORIGIN : process.env.LOCAL_ORIGIN ,
     methods:['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders:['Content-Type', 'Authorization']
 }))
