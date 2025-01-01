@@ -1,6 +1,6 @@
 const modelCustomer = require('../models/customer')
 const modelAdmin=require('../models/admin')
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
