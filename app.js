@@ -43,6 +43,9 @@ app.use(cors({
 app.use(express.json())
 
  // use api
+ app.get('/',(req,res)=>{
+    res.send('Hello World')
+ })
 app.use('/api/admin',routerAdmin)
 app.use('/api/categoryProduct',routerCategoryProduct)
 app.use('/api/product',routerProduct)
