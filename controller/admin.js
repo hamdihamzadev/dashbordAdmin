@@ -135,6 +135,20 @@ exports.getAdmin = async (req, res) => {
     }
 }
 
+exports.getAllAdmins=async(req,res)=>{
+    try{
+        const admins = await ModelAdmin.find().select('-password')
+        res.status(200).json({
+            admins
+        })
+    }
+    catch(error){
+        res.status(500).json({
+            error
+        })
+    }
+}
+
 
 
 // page confirmation with code 

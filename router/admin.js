@@ -6,5 +6,6 @@ const authAdmin=require('../middlware/authAdmin')
 router.post('/signup',controller.SignUp)
 router.post('/login',controller.Login)
 router.get('/getAdmin',authAdmin,controller.getAdmin)
+router.get('/getAllCustomer',controller.getAllAdmins)
 
 module.exports=router
