@@ -1,5 +1,5 @@
 const ModelAdmin = require('../models/admin')
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcryptjs')
 const jsw = require('jsonwebtoken')
 require('dotenv').config()
 
@@ -80,7 +80,7 @@ exports.Login = async (req, res) => {
         }
 
         // verification password
-        const vfPassword = await bcrypt.compare(password, admin.password)
+        const vfPassword = await bcrypt.compare(password,admin.password)
         if (!vfPassword) {
             return res.status(404).json({
                 message: 'passwrod is incorrecte'
