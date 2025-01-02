@@ -4,12 +4,13 @@ const authAdmin=require('../middlware/authAdmin')
 const authCustomer=require('../middlware/authCustomer')
 const controller=require('../controller/customer')
 
+
 // POST
 router.post('/signup',controller.SigninCustomer)
 router.post('/login',controller.loginCustomer)
 
 // GET
-router.get('/CustomerConnected/:nameStore',controller.getCustomerConnected)
+router.get('/CustomerConnected/:nameStore',authCustomer,controller.getCustomerConnected)
 router.get('/all',authAdmin,controller.GetAllCustomers)
 
 // PUT

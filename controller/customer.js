@@ -136,14 +136,13 @@ exports.getCustomerConnected = async (req, res) => {
 
         // GET ALL AUTHS 
         const nameStore=req.params.nameStore
-        // const customerId = req.authCustomer.customerId
-
+        const customerId = req.authCustomer.customerId
 
         // FIND CUSTOMER
         const findCustomer = await modelCustomer.findOne({
             nameStore,
-            // _id: customerId
-        }).select('-admin-_id')
+            _id: customerId
+        }).select('-admin -_id')
         
         if (!findCustomer) {
             return res.status(404).json({
@@ -153,7 +152,8 @@ exports.getCustomerConnected = async (req, res) => {
 
         // send customer
         res.status(200).json({
-            customer: findCustomer
+            customer: findCustomer,
+            message:'customer is found'
         })
     } catch (error) {
         res.status(500).json({

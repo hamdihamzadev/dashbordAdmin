@@ -42,10 +42,6 @@ app.use(cors({
 //traiter les données JSON
 app.use(express.json())
 
- // use api
- app.get('/',(req,res)=>{
-    res.send('Hello hamza')
- })
 app.use('/api/admin',routerAdmin)
 app.use('/api/categoryProduct',routerCategoryProduct)
 app.use('/api/product',routerProduct)

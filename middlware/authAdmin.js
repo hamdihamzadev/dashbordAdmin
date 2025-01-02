@@ -12,6 +12,7 @@ module.exports=async(req,res,next)=>{
         req.authAdmin={
             adminId
         }
+        
         next()
     }
     catch(error){

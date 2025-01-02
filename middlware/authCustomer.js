@@ -1,7 +1,9 @@
+
 const jwt=require('jsonwebtoken')
 require('dotenv').config()
 
-module.exports=(req,res,next)=>{
+
+module.exports=async(req,res,next)=>{
     try{
         const token=req.headers.authorization.split(' ')[1]
         const decodedToken=jwt.verify(token,process.env.JWT_SECRET_CUSTOMER)
@@ -9,9 +11,11 @@ module.exports=(req,res,next)=>{
         req.authCustomer={
             customerId
         }
+        console.log('customerId : ',customerId)
+        
         next()
     }
     catch(error){
-        res.status(500).json({error:error.message})
+        res.status(500).json({message:error.message})
     }
 }
