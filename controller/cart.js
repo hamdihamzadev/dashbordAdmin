@@ -475,4 +475,42 @@ exports.getItemDeletedInCustomer = async (req, res) => {
     }
 }
 
+// CHANGE PURCHASED ITEM
+exports.changePurchasedItem=async (req,res)=>{
+    try{
+        // ITEMS THE REQUEST
+        const customer=req.authCustomer.customerId
+        const nameStore=req.params.nameStore
+        const cartId=req.params.cartId
+        const idItem=req.params.idItem
+
+        //  delete mais non acheter
+        //  delte 
+
+        // FIND AND UPDATE ITEM
+        const changePurchasedItem=await modelCart.findOneAndUpdate(
+            {nameStore,customer,_id:cartId},
+            {$set:{
+                "items.$[elem].purchased":true
+            }}
+        )
+
+    changePurchasedItem.items = changePurchasedItem.items.filter(ele => ele.product !== null && ele.delete===false && ele.purchased===false )
+
+    if (!deleteItem) {
+        return res.status(404).json({
+            message: 'item is not deleted please try again'
+        })
+    }
+
+    res.status(200).json({
+        cart: changePurchasedItem,
+        message: 'Items have been successfully purchased',
+    })
+
+    }
+    catch(error){
+
+    }
+}
 

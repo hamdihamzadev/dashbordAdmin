@@ -11,7 +11,6 @@ module.exports=async(req,res,next)=>{
         req.authCustomer={
             customerId
         }
-        console.log('customerId : ',customerId)
         
         next()
     }
