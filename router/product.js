@@ -5,7 +5,6 @@ const controller=require('../controller/product')
 const multer=require('../middlware/multer').uploadMultiple
 
 router.post('/newproduct',authAdmin,multer,controller.createProduct)
-router.put('/product/:id',authAdmin,multer,controller.updateProduct)
 router.get('/product/:id',authAdmin,controller.getOneProduct)
 
 router.get('/getOneProduct/:nameStore/:id',controller.getOneProductForStore)
@@ -14,5 +13,8 @@ router.get('/getOneProductforStore/:nameStore/:id',controller.getOneProductForSt
 
 router.get('/productsCategory/:nameStore/:id',controller.getProductsCategoryForStore)
 router.get('/allProducts',authAdmin,controller.getAllProducts)
+
+router.put('/product/:id',authAdmin,multer,controller.updateProduct)
+router.put('/changeQuantity/:nameStore',controller.changeQuantity)
 
 module.exports=router

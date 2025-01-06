@@ -15,7 +15,7 @@ const routerOrder=require('./router/order')
 const routerCart=require('./router/cart')
 const routerFavorites=require('./router/favorites')
 const routerReviews=require('./router/reviews')
-require('dotenv').config()
+
 
 
 // connecte to mongoDB
@@ -32,15 +32,16 @@ const connectDB=async()=>{
 connectDB()
 
 // autorisation
-require('dotenv').config()
 app.use(cors({
     origin:process.env.NODE_ENV==='production' ? process.env.PROD_ORIGIN : process.env.LOCAL_ORIGIN ,
     methods:['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders:['Content-Type', 'Authorization']
 }))
 
-//traiter les données JSON
-app.use(express.json())
+// handle data json in request body
+app.use(express.json()) 
+// handle data form in request body
+app.use(express.urlencoded({extended:true}))
 
 app.use('/api/admin',routerAdmin)
 app.use('/api/categoryProduct',routerCategoryProduct)

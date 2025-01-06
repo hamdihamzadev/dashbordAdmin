@@ -74,7 +74,7 @@ exports.getCartCustomer = async (req, res) => {
             .populate('items.product')
             .lean()
 
-        findCart.items = findCart.items.filter(ele => ele.product !== null && ele.delete===false && ele.purchased===false)
+        findCart.items = findCart.items.filter(ele => ele.product !== null && ele.delete === false && ele.purchased === false)
 
         // SEND FAVORITES THE CUSTOMER
         res.status(200).json({
@@ -135,64 +135,60 @@ exports.AddItemToCart = async (req, res) => {
         //  ------------------- CHECK PRODUCT IF ALREADY EXIST IN CART ----------------------
 
         const checkProduct = cartCustomer.items
-            .filter(ele=>ele.delete===false && ele.purchased===false)
-            .find(ele => String(ele.product)=== product)
+            .filter(ele => ele.delete === false && ele.purchased === false)
+            .find(ele => String(ele.product) === product)
 
         if (checkProduct) {
-          const changeQuantity= await  modelCart.findOneAndUpdate(
-                {
-                    _id:cartId,
+            const changeQuantity = await modelCart.findOneAndUpdate({
+                    _id: cartId,
                     customer,
-                    "items._id":checkProduct._id
-                },
-                {
-                    $set:{
-                        "items.$.quantity":quantity
+                    "items._id": checkProduct._id
+                }, {
+                    $set: {
+                        "items.$.quantity": quantity
                     }
-                },
-                {
-                    new:true
-                }
-            )
-            .select('-admin -customer')
-            .populate('items.product')
-            .lean()
+                }, {
+                    new: true
+                })
+                .select('-admin -customer')
+                .populate('items.product')
+                .lean()
 
-            changeQuantity.items= changeQuantity.items.filter(ele=>ele.product!==null && ele.delete===false && ele.purchased===false)
-            
+            changeQuantity.items = changeQuantity.items.filter(ele => ele.product !== null && ele.delete === false && ele.purchased === false)
+
             return res.status(201).json({
-                message:`Your Item is change her quantity in ${quantity}`,
-                cart:changeQuantity
+                message: `Your Item is change her quantity in ${quantity}`,
+                cart: changeQuantity
 
             })
-        }else{
+        } else {
 
-        //  ------------------- CREATE NEW ITEM IN CART ----------------------
-        // PUSH ITEM IN ITEMS CART
-        cartCustomer.items.push({
-            product,
-            quantity,
-            delete: false,
-            purchased:false,
-            date: `${new Date().getDate()} - ${new Date().getMonth()} - ${new Date().getFullYear()}`
-        })
+            //  ------------------- CREATE NEW ITEM IN CART ----------------------
+            // PUSH ITEM IN ITEMS CART
+            cartCustomer.items.push({
+                product,
+                quantity,
+                delete: false,
+                purchased: false,
+                date: `${new Date().getDate()} - ${new Date().getMonth()} - ${new Date().getFullYear()}`
+            })
 
-        // SAVE CART
-        await cartCustomer.save()
-        const populateCart= await modelCart.findOne({
-            _id:cartId,
-            customer,
-        })
-        .select('-admin -customer')
-        .populate('items.product')
-        .lean()
+            // SAVE CART
+            await cartCustomer.save()
+            const populateCart = await modelCart.findOne({
+                    _id: cartId,
+                    customer,
+                })
+                .select('-admin -customer')
+                .populate('items.product')
+                .lean()
 
-        populateCart.items=populateCart.items.filter(ele=>ele.delete===false && ele.purchased===false && ele.product!==null)
+            populateCart.items = populateCart.items.filter(ele => ele.delete === false && ele.purchased === false && ele.product !== null)
 
-        return  res.status(201).json({
-            message: 'item is add in cart with successful',
-            cart:populateCart
-        })
+            return res.status(201).json({
+                message: 'item is add in cart with successful',
+                cart: populateCart
+            })
         }
 
     } catch (error) {
@@ -212,14 +208,14 @@ exports.changeQuantityItem = async (req, res) => {
 
         // FIND CART
         const cartUser = await modelCart.findOne({
-            _id: cartId,
-            customer
-        })
-        .select('-admin -customer')
-        .populate('items.product')
-        .lean()
+                _id: cartId,
+                customer
+            })
+            .select('-admin -customer')
+            .populate('items.product')
+            .lean()
 
-        cartUser.items=cartUser.items.filter(ele => ele.product !== null && ele.delete===false && ele.purchased===false )
+        cartUser.items = cartUser.items.filter(ele => ele.product !== null && ele.delete === false && ele.purchased === false)
 
         // FIND PRODUCT
         const findProduct = await modelCart
@@ -235,18 +231,18 @@ exports.changeQuantityItem = async (req, res) => {
         if (product.quantity === 0) {
             return res.status(404).json({
                 message: 'Stock out',
-                cart:cartUser
+                cart: cartUser
             })
         } else if (product.delete === true || product.visibility === false) {
             return res.status(404).json({
                 message: 'The product is no longer available in the store',
-                cart:cartUser
+                cart: cartUser
             })
         } else if (newQuantity > product.quantity) {
             console.log(cartUser)
             return res.status(404).json({
                 message: `Only ${product.quantity} items are left in stock; please reduce the quantity.`,
-                cart:cartUser
+                cart: cartUser
             })
         }
 
@@ -265,11 +261,11 @@ exports.changeQuantityItem = async (req, res) => {
             .populate('items.product')
             .lean()
 
-        updateItem.items = updateItem.items.filter(ele => ele.product !== null && ele.delete===false && ele.purchased===false )
+        updateItem.items = updateItem.items.filter(ele => ele.product !== null && ele.delete === false && ele.purchased === false)
 
         res.status(200).json({
             message: 'Quantity changed successfully',
-            cart : updateItem,
+            cart: updateItem,
         })
 
     } catch (error) {
@@ -301,7 +297,7 @@ exports.deleteItem = async (req, res) => {
             .populate('items.product')
             .lean()
 
-        deleteItem.items = deleteItem.items.filter(ele => ele.product !== null && ele.delete===false && ele.purchased===false )
+        deleteItem.items = deleteItem.items.filter(ele => ele.product !== null && ele.delete === false && ele.purchased === false)
 
         if (!deleteItem) {
             return res.status(404).json({
@@ -323,50 +319,47 @@ exports.deleteItem = async (req, res) => {
 }
 
 // DELETE ALL ITEMS
-exports.deleteAllItems = async (req,res)=>{
-    try{
+exports.deleteAllItems = async (req, res) => {
+    try {
         const customer = req.authCustomer.customerId
-        const cartId=req.params.cartId
+        const cartId = req.params.cartId
 
-        const cartDeleteAllItems= await modelCart.findOneAndUpdate(
-            {
-                _id:cartId,
-                customer
-            },
-            {
-                $set:{
-                    "items.$[].delete":true
-                }
-            },
-            {
-                new:true
+        const cartDeleteAllItems = await modelCart.findOneAndUpdate({
+            _id: cartId,
+            customer
+        }, {
+            $set: {
+                "items.$[].delete": true
             }
-        )
-
-        
-        cartDeleteAllItems.items=cartDeleteAllItems.items.filter(ele=>ele.delete===false && ele.purchased===false && ele.product!==null)
-
-        if(!cartDeleteAllItems){
-            return res.status(404)
-            .json({
-                message:'items is not deleted please try again',
-            })
-        }
- 
-
-        res.status(201)
-        .json({
-            message:'All items have been successfully deleted',
-            cart:cartDeleteAllItems
+        }, {
+            new: true
         })
 
 
-    }
-    catch(error){
-        return 
+        cartDeleteAllItems.items = cartDeleteAllItems.items.filter(ele => ele.delete === false && ele.purchased === false && ele.product !== null)
+
+        if (!cartDeleteAllItems) {
+            return res.status(404)
+                .json({
+                    message: 'items is not deleted please try again',
+                })
+        }
+
+
+        res.status(201)
+            .json({
+                message: 'All items have been successfully deleted',
+                cart: cartDeleteAllItems
+            })
+
+
+    } catch (error) {
+        return
         res.status(500)
-        .json({error})
-             
+            .json({
+                error
+            })
+
     }
 }
 
@@ -476,41 +469,42 @@ exports.getItemDeletedInCustomer = async (req, res) => {
 }
 
 // CHANGE PURCHASED ITEM
-exports.changePurchasedItem=async (req,res)=>{
-    try{
+exports.changePurchasedItem = async (req, res) => {
+    try {
         // ITEMS THE REQUEST
-        const customer=req.authCustomer.customerId
-        const nameStore=req.params.nameStore
-        const cartId=req.params.cartId
-        const idItem=req.params.idItem
-
-        //  delete mais non acheter
-        //  delte 
+        const customer = req.authCustomer.customerId
+        const nameStore = req.params.nameStore
+        const cartId = req.params.cartId
+        const items = req.body.items
 
         // FIND AND UPDATE ITEM
-        const changePurchasedItem=await modelCart.findOneAndUpdate(
-            {nameStore,customer,_id:cartId},
-            {$set:{
-                "items.$[elem].purchased":true
-            }}
-        )
-
-    changePurchasedItem.items = changePurchasedItem.items.filter(ele => ele.product !== null && ele.delete===false && ele.purchased===false )
-
-    if (!deleteItem) {
-        return res.status(404).json({
-            message: 'item is not deleted please try again'
+        let cartAfterChange={}
+        items.forEach(async item=>{
+           const changePurshased= await modelCart.findOneAndUpdate({
+                nameStore,
+                customer,
+                _id: cartId,
+                "items._id": item
+            }, {
+                $set: {
+                    "items.$.purchased": true
+                }
+            }, {
+                new: true
+            })
+            console.log(cartAfterChange)
+            if (!changePurshased) {
+                return res.status(404).json({
+                    message: 'purchased is not change'
+                })
+            }
         })
-    }
 
-    res.status(200).json({
-        cart: changePurchasedItem,
-        message: 'Items have been successfully purchased',
-    })
+        res.status(200).json({
+            message: 'Items have been successfully purchased',
+        })
 
-    }
-    catch(error){
-
+    } catch (error) {
+        res.status(500).json({error})
     }
 }
-

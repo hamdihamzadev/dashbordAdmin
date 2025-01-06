@@ -112,6 +112,44 @@ exports.updateProduct = async (req, res) => {
     }
 }
 
+// change quantity in send order
+exports.changeQuantity=async(req,res)=>{
+    try{
+        const _id=req.params.id
+        const nameStore=req.params.nameStore
+        const quantityOrder=req.body.products
+
+        // find product
+        const findProduct= await modelproduct.find({
+            _id,
+            nameStore
+        })
+        if(!findProduct){
+            res.status(404).json({message:'Product is not found'})
+        }
+
+        console.log('currentQuantity',quantityOrder)
+        res.status(200).jsons({message:'quantity is reduce with successful'})
+
+
+        // Update quantity product
+        // const updateProduct=await modelproduct.findByIdAndUpdate(
+        //     {
+        //         nameStore,
+        //         _id
+        //     },
+        //     {
+        //         $set:{
+        //             quantity:
+        //         }
+        //     }
+        // )
+    }
+    catch(error){
+        res.status(500).json({error})
+    }
+}
+
 // get one product
 exports.getOneProduct = async (req, res) => {
     try {
