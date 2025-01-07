@@ -7,10 +7,10 @@ exports.createOrderByCustomer = async (req, res) => {
 
         // GET AUTH ADMIN
         const customer = req.authCustomer.customerId
+        const nameStore= req.params.nameStore
 
         // FIELDS 
         const {
-            nameStore,
             firstname,
             lastname,
             phone,
@@ -23,64 +23,77 @@ exports.createOrderByCustomer = async (req, res) => {
             status,
         } = req.body
 
+        console.log('customer',customer)
+        console.log('nameStore',nameStore)
+        console.log('firstname',firstname)
+        console.log('lastname',lastname)
+        console.log('phone',phone)
+        console.log('contry',contry)
+        console.log('city',city)
+        console.log('adress',adress)
+        console.log('total',total)
+        console.log('notes',notes)
+        console.log('total',total)
+        console.log('orderItem',orderItem)
+        console.log('status',status)
         // GET ID ADMIN
-        const admin = await modelAdmin.findOne({
-            nameStore
-        }).select('_id')
+        // const admin = await modelAdmin.findOne({
+        //     nameStore
+        // }).select('_id')
 
-        if (!admin) {
-            return res.status(404).json({
-                message: 'store not found'
-            })
-        }
+        // if (!admin) {
+        //     return res.status(404).json({
+        //         message: 'store not found'
+        //     })
+        // }
 
         
-        // RETURN DEADLINE
-        const currentDate = new Date();
-        currentDate.setDate(currentDate.getDate() + 7);
-        const returnDeadline = `${currentDate.getDate()}-${currentDate.getMonth() + 1}-${currentDate.getFullYear()}`;
+        // // RETURN DEADLINE
+        // const currentDate = new Date();
+        // currentDate.setDate(currentDate.getDate() + 7);
+        // const returnDeadline = `${currentDate.getDate()}-${currentDate.getMonth() + 1}-${currentDate.getFullYear()}`;
 
         // CREATE ORDER
-        const newOrder = new modelOrder({
-            admin,
-            customer,
-            nameStore,
-            firstname,
-            lastname,
-            phone,
-            contry,
-            city,
-            adress,
-            total,
-            notes,
-            orderItem,
-            status,
-            returnDeadline,
-            TrackingId:`TRACK-${uuid.v4()}`,
-            delete: false,
-            date: `${new Date().getDate()}-${new Date().getMonth() }-${new Date().getFullYear()}`
-        })
+        // const newOrder = new modelOrder({
+        //     admin,
+        //     customer,
+        //     nameStore,
+        //     firstname,
+        //     lastname,
+        //     phone,
+        //     contry,
+        //     city,
+        //     adress,
+        //     total,
+        //     notes,
+        //     orderItem,
+        //     status,
+        //     returnDeadline,
+        //     TrackingId:`TRACK-${uuid.v4()}`,
+        //     delete: false,
+        //     date: `${new Date().getDate()}-${new Date().getMonth() }-${new Date().getFullYear()}`
+        // })
 
-        if (!newOrder) {
-            return res.status(400).json({
-                message: 'error in created order'
-            })
-        }
+        // if (!newOrder) {
+        //     return res.status(400).json({
+        //         message: 'error in created order'
+        //     })
+        // }
 
-        // GET ORDERS CUSTOMER
-        const getOrders = await modelOrder.find({
-            admin,
-            customer
-        }).select('-admin -customer -nameStore')
+        // // GET ORDERS CUSTOMER
+        // const getOrders = await modelOrder.find({
+        //     admin,
+        //     customer
+        // }).select('-admin -customer -nameStore')
 
-        if (!getOrders) {
-            return res.status(404).json({
-                message: 'customer does not have any orders'
-            })
-        }
+        // if (!getOrders) {
+        //     return res.status(404).json({
+        //         message: 'customer does not have any orders'
+        //     })
+        // }
 
         res.status(201).json({
-            orders: getOrders,
+            // orders: getOrders,
             message: 'order is created with successful'
         })
 

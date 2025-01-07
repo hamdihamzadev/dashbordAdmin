@@ -139,14 +139,30 @@ const orderSchema=mongoose.Schema({
             type: String,
             required: true
         }],
-        adminResponse:{
-            type:Boolean,
-            required: false
-        },
-        adminComment:{
-            type:String,
-            required: false
-        }
+        adminResponse:[
+            {
+                text:{
+                    type:String,
+                    required: true
+                },
+                date:{
+                    type:String,
+                    required: true
+                }
+            }
+        ],
+        adminComment:[
+            {
+                text:{
+                    type:String,
+                    required: true
+                },
+                date:{
+                    type:String,
+                    required: true
+                }
+            }
+        ]
     }],
 
     TrackingId:{

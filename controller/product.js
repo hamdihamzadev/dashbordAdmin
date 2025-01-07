@@ -2,6 +2,7 @@ const modelproduct = require('../models/product')
 const modelCategory = require('../models/categoryProduct')
 const modelOrders = require('../models/order')
 const modelreview = require('../models/review')
+const product = require('../models/product')
 
 // create product
 exports.createProduct = async (req, res) => {
@@ -113,40 +114,49 @@ exports.updateProduct = async (req, res) => {
 }
 
 // change quantity in send order
-exports.changeQuantity=async(req,res)=>{
-    try{
-        const _id=req.params.id
-        const nameStore=req.params.nameStore
-        const quantityOrder=req.body.products
+exports.changeQuantity = async (req, res) => {
+    try {
 
-        // find product
-        const findProduct= await modelproduct.find({
-            _id,
-            nameStore
-        })
-        if(!findProduct){
-            res.status(404).json({message:'Product is not found'})
-        }
-
-        console.log('currentQuantity',quantityOrder)
-        res.status(200).jsons({message:'quantity is reduce with successful'})
-
-
+        const nameStore = req.params.nameStore
+        const products = req.body.products
         // Update quantity product
-        // const updateProduct=await modelproduct.findByIdAndUpdate(
-        //     {
-        //         nameStore,
-        //         _id
-        //     },
-        //     {
-        //         $set:{
-        //             quantity:
-        //         }
-        //     }
-        // )
-    }
-    catch(error){
-        res.status(500).json({error})
+        products.forEach(async product => {
+            // find product
+            const findProduct = await modelproduct.find({
+                _id: product.id,
+                nameStore
+            })
+            if (!findProduct) {
+                res.status(404).json({
+                    message: 'Product is not found'
+                })
+            }
+            const changeQuantity = await modelproduct.findByIdAndUpdate({
+                _id: product.id,
+                nameStore,
+            }, {
+                $set: {
+                    quantity: product.quantity
+                }
+            }, {
+                new: true
+            })
+
+            if (!changeQuantity) {
+                return res.status(400).json({
+                    message: 'Product not found or update failed'
+                })
+            }
+        })
+
+        res.status(200).json({
+            message: "Quantity updated successfully"
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            error: error.message
+        })
     }
 }
 
@@ -161,7 +171,7 @@ exports.getOneProduct = async (req, res) => {
         if (!findProduct) {
             return res.status(404).json({
                 message: 'product not found',
-                
+
             })
         }
 
@@ -178,23 +188,29 @@ exports.getOneProduct = async (req, res) => {
 
 
 // get one product for store
-exports.getOneProductForStore= async (req,res)=>{
-    try{
-        const nameStore=req.params.nameStore
-        const idProduct=req.params.id
+exports.getOneProductForStore = async (req, res) => {
+    try {
+        const nameStore = req.params.nameStore
+        const idProduct = req.params.id
 
         // find product
-        const findProduct=await modelproduct.findOne({nameStore,_id:idProduct}).select('-admin').lean()
+        const findProduct = await modelproduct.findOne({
+            nameStore,
+            _id: idProduct
+        }).select('-admin').lean()
 
-        if(!findProduct){
+        if (!findProduct) {
             return res.status(404).json({
                 error: 'product not found'
             })
         }
 
 
-        const findReviews= await modelreview.find({nameStore,product:idProduct}).select('-admin')
-        if(!findReviews){
+        const findReviews = await modelreview.find({
+            nameStore,
+            product: idProduct
+        }).select('-admin')
+        if (!findReviews) {
             return res.status(404).json({
                 error: 'reviews the product not found'
             })
@@ -202,17 +218,16 @@ exports.getOneProductForStore= async (req,res)=>{
 
 
 
-        const product={
+        const product = {
             ...findProduct,
-            reviews:findReviews,
+            reviews: findReviews,
         }
 
         res.status(200).json({
             product
         })
 
-    }
-    catch(error){
+    } catch (error) {
         res.status(500).json({
             error
         })
@@ -283,18 +298,18 @@ exports.getProductsCategoryForStore = async (req, res) => {
         }
 
         // FIND REVIEWS
-        const getReviews=await modelreview.find({
+        const getReviews = await modelreview.find({
             nameStore,
         }).select('-admin')
 
 
         //  UPDATE TABLE PRODUCTS
-        const updatedProducts = findProducts.map(product=>({
+        const updatedProducts = findProducts.map(product => ({
             ...product,
-            orders:getOrders.filter(order => order.product === product._id).length,
-            reviews:getReviews.filter(review => review.product === product._id ).length
+            orders: getOrders.filter(order => order.product === product._id).length,
+            reviews: getReviews.filter(review => review.product === product._id).length
         }))
-            
+
 
         // send products the category
         res.status(200).json({
