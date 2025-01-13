@@ -116,7 +116,7 @@ exports.getAdmin = async (req, res) => {
         // FIND ADMIN
         const findAdmin = await ModelAdmin.findOne({
             _id: adminId
-        }).select('-admin')
+        }).select('-_id')
 
         // verification if already used
         if (!findAdmin) {

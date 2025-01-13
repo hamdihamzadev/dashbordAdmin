@@ -15,6 +15,7 @@ const routerOrder=require('./router/order')
 const routerCart=require('./router/cart')
 const routerFavorites=require('./router/favorites')
 const routerReviews=require('./router/reviews')
+const routerStatus=require('./router/status')
 
 
 
@@ -43,6 +44,7 @@ app.use(express.json())
 // handle data form in request body
 app.use(express.urlencoded({extended:true}))
 
+
 app.use('/api/admin',routerAdmin)
 app.use('/api/categoryProduct',routerCategoryProduct)
 app.use('/api/product',routerProduct)
@@ -53,6 +55,7 @@ app.use('/api/order',routerOrder)
 app.use('/api/cart',routerCart)
 app.use('/api/favorites',routerFavorites)
 app.use('/api/reviews',routerReviews)
+app.use('/api/trackingOrder',routerStatus)
 app.use('/images', express.static('public/images'))
 
 module.exports=app

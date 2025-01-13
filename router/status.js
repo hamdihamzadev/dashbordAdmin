@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const Controller = require('../controller/status');
-const authAdmin = require('../middlware/authAdmin')
+const authAdmin = require('../middlware/authAdmin'); 
 
 router.post('/Addstatus',authAdmin,Controller.createStatus);
 router.get('/AllStatusByAdmin',authAdmin,Controller.getStatus);

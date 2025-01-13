@@ -16,25 +16,21 @@ const schema=mongoose.Schema({
         type:String,
         required:true
     },
-
     backgroundColor:{
          type:String,
         required:true
     },
-
     color:{
          type:String,
         required:true
     },
-
     description:{
         type:String,
         required:true
     },
-
     delete:{
         type:Boolean,
-        required:true
+        default:false
     }
 })
 

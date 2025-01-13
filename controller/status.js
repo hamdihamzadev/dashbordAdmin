@@ -7,7 +7,9 @@ exports.createStatus = async (req, res) => {
             admin: req.authAdmin.adminId,
             name: req.body.name,
             icon: req.body.icon,
-            delete:false
+            backgroundColor:req.body.backgroundColor,
+            color:req.body.color,
+            description:req.body.description,
         })
 
         const saveStatus = await newStatus.save()   
@@ -17,7 +19,7 @@ exports.createStatus = async (req, res) => {
             })
         }
 
-        const filterStatus=await modelStatus.find({admin:req.authAdmin.adminId,delete:false}).select('name icon')
+        const filterStatus=await modelStatus.find({admin:req.authAdmin.adminId,delete:false}).select('-admin -nameStore -_id')
 
         res.status(200).json({
             message: 'status is created with success',
@@ -38,7 +40,7 @@ exports.getStatus = async (req, res) => {
         const findstatus = await modelStatus.find({
             admin,
             delete: false
-        }).select('name icon')
+        }).select('-admin -nameStore -_id')
 
         if (!findstatus) {
             res.status(404).json({
