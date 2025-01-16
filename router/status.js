@@ -6,6 +6,7 @@ const authAdmin = require('../middlware/authAdmin');
 
 router.post('/Addstatus',authAdmin,Controller.createStatus);
 router.get('/AllStatusByAdmin',authAdmin,Controller.getStatus);
+router.get('/getOneStatus/:id',authAdmin,Controller.getOneStatus)
 router.put('/UpdateStatus/:id',authAdmin,Controller.updateStatus);
 
 module.exports = router;

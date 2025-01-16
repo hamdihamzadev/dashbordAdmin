@@ -40,11 +40,11 @@ exports.getStatus = async (req, res) => {
         const findstatus = await modelStatus.find({
             admin,
             delete: false
-        }).select('-admin -nameStore -_id')
+        }).select('-admin -nameStore')
 
-        if (!findstatus) {
+        if (!findstatus || findstatus.length===0) {
             res.status(404).json({
-                message: 'dont have any status'
+                message: 'No statuses found.'
             })
         }
 
@@ -55,6 +55,28 @@ exports.getStatus = async (req, res) => {
         res.status(500).json({
             error
         })
+    }
+},
+
+exports.getOneStatus=async (req,res)=>{
+    try{
+        const admin=req.authAdmin.adminId
+        const idStatus=req.params.id
+
+        // find status
+        const getStatus=await modelStatus.findOne({
+            _id:idStatus,
+            admin
+        }).select('-admin -nameStore')
+
+        if(!getStatus){
+          return  res.status(404).json({message:'status not found'})
+        }
+
+        res.status(200).json({status:getStatus})
+    }
+    catch(error){
+        res.status(500).json({error})
     }
 }
 
